@@ -43,7 +43,7 @@ Ce projet propose une alternative :
 - Support géométrie circulaire et rectangulaire
 - Estimation puissance ventilateur
 - Calcul coût énergétique annuel
-- Visualisation automatique du réseau (Graph + géométrie)
+- Visualisation automatique du réseau (graph + géométrie)
 - API FastAPI (intégration Python / industrialisation)
 
 ---
@@ -84,10 +84,13 @@ Chaque conduit est modélisé sous la forme :
 
 <p align="center">
   <b>ΔP = R · Q²</b> 
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; avec &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-  <b>R = [ f · (L/D) + Σζ ] · [ ρ / (2 · S²) ]</b>
 </p>
 
+avec :
+
+<p align="center">
+  <b>R = [ f · (L/D) + Σζ ] · [ ρ / (2 · S²) ]</b>
+</p>
 
 *   **Q** : Débit volumique (m³/s)
 *   **S** : Section du conduit (m²)
@@ -115,6 +118,7 @@ Le solveur repose sur une relaxation nodale itérative :
 </p>
 
 - α : facteur de relaxation (stabilité numérique)
+- imbalance = résidu de continuité nodale (ΣQ - S) au nœud i
 
 ---
 
