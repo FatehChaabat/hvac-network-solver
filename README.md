@@ -50,7 +50,7 @@ Ce projet propose une alternative :
 
 ## 🧠 Modèle physique
 
-Le solveur repose sur une **modélisation réseau simplifiée non linéaire**, adaptée au pré-dimensionnement HVAC. IL repose sur les principes fondamentaux de la mécanique des fluides :
+Le solveur repose sur une **modélisation réseau simplifiée non linéaire**, adaptée au pré-dimensionnement HVAC. Il s’appuie sur les principes fondamentaux de la mécanique des fluides :
 
 ### 1. Conservation de la masse (nœuds)
 
