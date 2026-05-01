@@ -120,20 +120,6 @@ P(k+1) = P(k) + α · imbalance
 
 ---
 
-## 🧩 Architecture du solveur
-
-Le problème est formulé comme un système non linéaire :
-
-```text
-1. Nœuds → équation de continuité (ΣQ = S)
-2. Conduits → relation ΔP(Q)
-3. Réseau → couplage global des équations
-4. Résolution → relaxation itérative des pressions
-5. Convergence → équilibre hydraulique
-```
-
----
-
 ## ⚠️ Hypothèses
 - écoulement incompressible
 - régime permanent
