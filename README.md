@@ -1,6 +1,7 @@
-# HVAC Expert API
+# HVAC Network Solver
 
->**HVAC Expert API** est un moteur de simulation aéraulique professionnel conçu pour le calcul, l'équilibrage et l'audit énergétique de réseaux de ventilation. Développé avec **FastAPI**, il transforme des données de conception en un modèle physique précis.
+>**HVAC Network Solver** est un moteur de calcul aéraulique basé sur une modélisation de réseau nodal non linéaire.
+Il permet le **dimensionnement**, **l’équilibrage** et **l’analyse énergétique** de réseaux de ventilation à partir d’une description géométrique simple.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green)
@@ -8,92 +9,163 @@
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ---
-## 🎯 Objectifs & Valeur Métier
-- Bureau d’étude CVC
-- Pré-dimensionnement ventilation
-- Désenfumage (parking, ERP)
-- Outil pédagogique
+
+## 💡 Contexte
+
+Les outils HVAC classiques sont souvent :
+
+- propriétaires et fermés
+- peu transparents sur les modèles physiques
+- difficiles à automatiser dans des workflows numériques
+
+Ce projet propose une alternative :
+
+- open-source
+- basée sur un modèle physique explicite simplifié
+- exploitable via API (Python / simulation / optimisation)
+
+---
+
+## 🎯 Cas d’usage
+
+- Pré-dimensionnement de réseaux de ventilation
+- Vérification des pertes de charge
+- Analyse énergétique de systèmes aérauliques
+- Simulation de réseaux de désenfumage
+- Support bureau d’études CVC / énergie
 
 ---
 
 ## 🚀 Fonctionnalités
 
-*   **Solveur Nodal Itératif** : Équilibre automatiquement les débits et calcule les pressions aux nœuds via une méthode de relaxation.
-*   **Audit Énergétique Intégré** : Calcule la puissance du ventilateur et estime le coût annuel d'électricité en Euros.
-*   **Génération de Schéma Technique** : Visualisation dynamique du réseau avec distinction visuelle des formes (Circulaire vs Rectangulaire).
-*   **Calculs Physiques Avancés** : Prise en charge des pertes de charge linéaires (friction) et singulières (coudes, tés, etc.).
+- Solveur nodal non linéaire (équilibrage automatique des débits)
+- Modélisation des pertes de charge (linéaires + singulières)
+- Support géométrie circulaire et rectangulaire
+- Estimation puissance ventilateur
+- Calcul coût énergétique annuel
+- Visualisation automatique du réseau (Graph + géométrie)
+- API FastAPI (intégration Python / industrialisation)
 
 ---
 
 ## 🧠 Modèle physique
 
-Le moteur de calcul repose sur trois piliers fondamentaux de la mécanique des fluides :
+Le solveur repose sur une **modélisation réseau simplifiée non linéaire**, adaptée au pré-dimensionnement HVAC. IL repose sur les principes fondamentaux de la mécanique des fluides :
 
-### 1. Conservation de la masse (Loi des nœuds)
-La somme des débits entrants et sortants à chaque nœud doit être égale à la source ou à la consommation (S) :
-> **Σ Q = S**
+### 1. Conservation de la masse (nœuds)
 
-### 2. Relation Pression-Débit
-Le débit (Q) circulant dans un conduit est proportionnel à la racine carrée de la perte de charge (ΔP) divisée par la résistance (R) :
-> **Q = √(ΔP / R)**
+À chaque nœud du réseau :
 
-### 3. Résistance aéraulique (R)
-Elle combine les pertes de charge linéaires (friction) et les pertes singulières (coudes, tés) :
-> **R = [ f * (L/D) + Σζ ] * [ ρ / (2 * S²) ]**
-
-Où :
-*   **f** : Coefficient de friction (0.02 par défaut)
-*   **L** : Longueur (m) / **D** : Diamètre (m)
-*   **ζ (Zeta)** : Coefficients de pertes singulières
-*   **ρ (Rho)** : Densité de l'air (1.204 kg/m³)
-*   **S** : Section réelle de la gaine (m²)
-
----
-## 🔬 Hypothèses
-- Écoulement incompressible
-- Facteur de friction constant (approximation)
-- Solveur itératif (relaxation)
-- Pas de courbe ventilateur intégrée
-
----
-
-## 📖 Documentation de l'API
-
-L'interface interactive (Swagger) est accessible sur : `http://127.0.0.1:8000/docs`
-
-### Points d'entrée (Endpoints) principaux :
-
-| Méthode | Route | Description |
-| :--- | :--- | :--- |
-| `POST` | `/network/init` | Réinitialise le réseau à zéro. |
-| `POST` | `/network/nodes` | Ajoute des points de passage ou de consommation (m3/h). |
-| `POST` | `/network/ducts` | Définit les conduits (Longueurs, Diamètres, Coeffs). |
-| `GET` | `/network/solve` | Lance le solveur et retourne l'audit énergétique. |
-| `GET` | `/network/visualize` | Génère et affiche le schéma technique en PNG. |
-
----
-
-## 🎨 Rendu Visuel
-
-Le moteur de visualisation utilise **Matplotlib** et **NetworkX** pour créer un schéma de principe où :
-*   🔵 **Bleu (Circulaire)** : Conduits à section ronde.
-*   ⚪ **Gris (Rectangulaire)** : Conduits à section rectangulaire.
-*   **Épaisseur** : Proportionnelle au diamètre hydraulique du conduit.
-
----
-
-## 🏗️ Exemple complet (réseau réaliste BE)
-
-### 1. Initialisation
-
-```http
-POST /network/init
+```text
+Σ Q = S
 ```
 
-### 2. Ajouter les nœuds
-```http
-POST /network/nodes
+- S > 0 : soufflage
+- S < 0 : extraction
+- S = 0 : simple transit
 
+### 2. Pertes de charge (Darcy–Weisbach)
+
+```text
+ΔP = [ f · (L/D) + Σζ ] · (ρ · v²) / 2
+```
+
+Où :
+*   **f** : Facteur de friction (Darcy)
+*   **L** : Longueur du conduit (m) 
+*   **D** : Diamètre hydraulique (m)
+*   **Σζ** : Somme des coefficients de pertes singulières (coudes, tés, registres)
+*   **ρ** : Masse volumique de l’air (~1.204 kg/m³)
+*   **v** : Vitesse de l’air (m/s)
+
+### 3. Formulation réseau (modèle résistif)
+
+Chaque conduit est modélisé sous la forme :
+
+```text
+ΔP = R · Q²  
+```
+avec
+
+```text
+R = [ f · (L/D) + Σζ ] · [ ρ / (2 · S²) ]
+```
+
+*   **Q** : Débit volumique (m³/s)
+*   **S** : Section du conduit (m²)
+*   **R** : résistance aéraulique
+
+### 4. Relation débit–pression (inverse)
+
+```text
+Q = sign(ΔP) · √( |ΔP| / R )
+```
+
+---
+
+## ⚙️ Méthode numérique
+
+Le solveur repose sur une relaxation nodale itérative :
+
+1. Initialisation des pressions nodales  
+2. Calcul des débits via Q(ΔP)  
+3. Calcul des déséquilibres de continuité aux nœuds  
+4. Mise à jour des pressions :
+
+```text
+P(k+1) = P(k) + α · imbalance
+```
+
+👉 α : facteur de relaxation (stabilité numérique)
+
+---
+
+## 🧩 Architecture du solveur
+
+Le problème est formulé comme un système non linéaire :
+
+```text
+1. Nœuds → équation de continuité (ΣQ = S)
+2. Conduits → relation ΔP(Q)
+3. Réseau → couplage global des équations
+4. Résolution → relaxation itérative des pressions
+5. Convergence → équilibre hydraulique
+```
+
+---
+
+## ⚠️ Hypothèses
+- écoulement incompressible
+- régime permanent
+- facteur de friction constant
+- pertes singulières regroupées en ζ
+- pas de dynamique transitoire
+- pas de courbe ventilateur intégrée
+
+---
+
+## 📖 API
+
+Swagger : [`http://127.0.0.1:8000/docs`](http://127.0.0.1:8000/docs)
+
+### Endpoints
+
+| Méthode | Route | Description |
+|--------|------|------------|
+| POST | /network/init | reset réseau |
+| POST | /network/nodes | ajout nœuds |
+| POST | /network/ducts | ajout conduits |
+| GET  | /network/solve | résolution réseau |
+| GET  | /network/visualize | schéma réseau |
+
+
+---
+
+## 🏗️ Exemple 
+
+### Nœuds
+
+```json
 [
   {"name": "A", "supply": 4000},
   {"name": "B", "supply": 0},
@@ -103,16 +175,10 @@ POST /network/nodes
   {"name": "F", "supply": -1500}
 ]
 ```
-👉 Interprétation :
 
-- A = soufflage principal (4000 m³/h)
-- D, E, F = bouches d’extraction
-- B, C = nœuds de distribution
+### Conduits
 
-### 3. Ajouter les conduits
-```http
-POST /network/ducts
-
+```json
 [
   {
     "name": "Troncon_Principal_AB",
@@ -158,18 +224,10 @@ POST /network/ducts
   }
 ]
 ```
-👉 Points clés :
 
-- Mélange circulaire / rectangulaire
-- Branches avec pertes différentes
-- Cas typique déséquilibré → le solveur répartit automatiquement
+### Solve 
 
-### 4. Solve réseau
-```http
-GET /network/solve
-```
-Résultat obtenu
-```http
+```json
 {
   "summary": {
     "total_flow_m3h": 4000,
@@ -212,23 +270,21 @@ Résultat obtenu
   ]
 }
 ```
-👉 Lecture technique
-- La loi des nœuds est respectée, le débit total injecté est égal à la somme des sorties ($4000 = 1000 + 1500 + 1500$)
-- La branche la plus éloignée ou résistante dicte la pression maximale du ventilateur ($95.3$ Pa)
-- La branche F est en limite haute ($5.95$ m/s), ce qui peut générer des nuisances acoustiques
-- Le coût annuel ($94.54$ €) est directement lié à la perte de charge de la branche la plus défavorisée
+👉 Lecture ingénieur
+- continuité respectée
+- la branche la plus résistante impose la pression système
+- la dernière branche conditionne le dimensionnement ventilateur
+- vérification des vitesses pour confort / acoustique
 
-### 5. Visualisation
-```http
-GET /network/visualize
-```
+### Visualisation
+
 <p align="center">
 <img src="docs/hvac_network_results.png" width="850">
 
-👉 Permet de voir :
-- structure du réseau
-- répartition des débits
-- différences géométriques
+👉 Lecture :
+- bleu : circulaire
+- gris : rectangulaire
+- épaisseur = débit
 
 ---
 
@@ -236,22 +292,21 @@ GET /network/visualize
 - Solveur Newton-Raphson (niveau industriel)
 - Courbes ventilateur (Q–ΔP)
 - Export Excel / PDF
-- Interface web (dashboard)
-- Multi-projets (API stateful)
+- Interface web (dashboard CVC)
 - Optimisation automatique réseau
 
 ---
 
 ## ⚠️ Disclaimer
 
-Ce projet fournit une base de calcul fiable pour pré-dimensionnement.
-Toute validation réglementaire doit être confirmée par un bureau d’étude.
+Outil de pré-dimensionnement uniquement.
+Ne remplace pas une étude CFD ou une validation réglementaire.
 
 ---
 
 ## 📁 Structure du projet
 ```text
-hvac-expert-api/
+hvac-network-solver/
 │
 ├── README.md                                       # Documentation principale
 ├── LICENSE                                         # Licence MIT                          
@@ -280,14 +335,11 @@ pip install -r requirements.txt
 # Lancer le serveur
 uvicorn main:app --reload    
 
-# Accès :
-API : http://127.0.0.1:8000
-Swagger : http://127.0.0.1:8000/docs
 ```
 
 ---
 ## 👤 Auteur
-Ingénieur en **mécanique des fluides et systèmes énergétiques**, avec un intérêt pour l’analyse de données, la modélisation et l’optimisation énergétique. 
+Ingénieur en mécanique des fluides et énergétique, spécialisé en modélisation et systèmes CVC.
 
 [![Portfolio](https://img.shields.io/badge/Portfolio-fatehchaabat.github.io-blue?logo=google-chrome&logoColor=white)](https://fatehchaabat.github.io)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Fateh%20Chaabat-green?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/fateh-chaabat-08202aa9/)
@@ -297,4 +349,4 @@ Ingénieur en **mécanique des fluides et systèmes énergétiques**, avec un in
 ---
 
 ## 📄 Licence
-Ce projet est sous **MIT License** – vous pouvez librement utiliser, modifier et partager le code et les fichiers, à condition de conserver la mention du copyright et de la licence.
+MIT License
