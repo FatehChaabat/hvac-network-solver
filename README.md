@@ -56,9 +56,9 @@ Le solveur repose sur une **modélisation réseau simplifiée non linéaire**, a
 
 À chaque nœud du réseau :
 
-```text
-Σ Q = S
-```
+<p align="center">
+  <b>Σ Q = S</b>
+</p>
 
 - S > 0 : soufflage
 - S < 0 : extraction
@@ -66,9 +66,9 @@ Le solveur repose sur une **modélisation réseau simplifiée non linéaire**, a
 
 ### 2. Pertes de charge (Darcy–Weisbach)
 
-```text
-ΔP = [ f · (L/D) + Σζ ] · (ρ · v²) / 2
-```
+<p align="center">
+  <b>ΔP = [ f · (L/D) + Σζ ] · (ρ · v²) / 2</b>
+</p>
 
 Où :
 *   **f** : Facteur de friction (Darcy)
@@ -82,14 +82,12 @@ Où :
 
 Chaque conduit est modélisé sous la forme :
 
-```text
-ΔP = R · Q²  
-```
-avec
+<p align="center">
+  <b>ΔP = R · Q²</b> 
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; avec &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  <b>R = [ f · (L/D) + Σζ ] · [ ρ / (2 · S²) ]</b>
+</p>
 
-```text
-R = [ f · (L/D) + Σζ ] · [ ρ / (2 · S²) ]
-```
 
 *   **Q** : Débit volumique (m³/s)
 *   **S** : Section du conduit (m²)
@@ -97,9 +95,9 @@ R = [ f · (L/D) + Σζ ] · [ ρ / (2 · S²) ]
 
 ### 4. Relation débit–pression (inverse)
 
-```text
-Q = sign(ΔP) · √( |ΔP| / R )
-```
+<p align="center">
+  <b>Q = sign(ΔP) · √( |ΔP| / R )</b> 
+</p>
 
 ---
 
@@ -112,15 +110,15 @@ Le solveur repose sur une relaxation nodale itérative :
 3. Calcul des déséquilibres de continuité aux nœuds  
 4. Mise à jour des pressions :
 
-```text
-P(k+1) = P(k) + α · imbalance
-```
+<p align="center">
+  <b>P(k+1) = P(k) + α · imbalance</b> 
+</p>
 
-👉 α : facteur de relaxation (stabilité numérique)
+- α : facteur de relaxation (stabilité numérique)
 
 ---
 
-## ⚠️ Hypothèses
+## 🔍 Hypothèses
 - écoulement incompressible
 - régime permanent
 - facteur de friction constant
