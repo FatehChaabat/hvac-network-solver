@@ -300,7 +300,7 @@ hvac-network-solver/
 ├── calculs.py                                      # Modèle physique
 │
 ├── docs/
-│   └── demo.png                                    # Image démo
+│   └── hvac_network_results.png                    # Image démo
 │
 └── .gitignore                                      # Fichiers à exclure
 
