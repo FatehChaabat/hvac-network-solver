@@ -1,138 +1,104 @@
 # HVAC Network Solver
 
->**HVAC Network Solver** est un moteur de calcul aéraulique basé sur une modélisation de réseau nodal non linéaire.
-Il permet le **dimensionnement**, **l’équilibrage** et **l’analyse énergétique** de réseaux de ventilation à partir d’une description géométrique simple.
+>**HVAC Network Solver** est un moteur de calcul aéraulique haute performance basé sur une modélisation de réseau nodal non linéaire. Il permet le **dimensionnement**, **l’équilibrage** et **l’analyse énergétique** de réseaux complexes via une interface API moderne.
 
-![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green)
-![Status](https://img.shields.io/badge/status-active-success)
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=flat&logo=fastapi&logoColor=white)
+![OpenAPI](https://img.shields.io/badge/OpenAPI-3.1-8BE9FD?style=flat&logo=openapi-initiative)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ---
 
-## 💡 Contexte
+## 💡 Contexte & Vision
 
-Les outils HVAC classiques sont souvent :
+Ce projet propose une alternative open-source aux logiciels HVAC propriétaires souvent "boîtes noires". Il offre un moteur transparent, automatisable et prêt pour l'industrie 4.0.
 
-- propriétaires et fermés
-- peu transparents sur les modèles physiques
-- difficiles à automatiser dans des workflows numériques
-
-Ce projet propose une alternative :
-
-- open-source
-- basée sur un modèle physique explicite simplifié
-- exploitable via API (Python / simulation / optimisation)
+- **Transparence** : Modèles physiques explicites (Haaland, Blasius, Darcy-Weisbach)
+- **Flexibilité** : Intégrable dans des workflows d'optimisation ou de CAO
+- **Modernité** : Documentation conforme au standard **OpenAPI 3.1**
 
 ---
 
-## 🎯 Cas d’usage
+## 🚀 Fonctionnalités Clés
 
-- Pré-dimensionnement de réseaux de ventilation
-- Vérification des pertes de charge
-- Analyse énergétique de systèmes aérauliques
-- Simulation de réseaux de désenfumage
-- Support bureau d’études CVC / énergie
-
----
-
-## 🚀 Fonctionnalités
-
-- Solveur nodal non linéaire (équilibrage automatique des débits)
-- Modélisation des pertes de charge (linéaires + singulières)
-- Support géométrie circulaire et rectangulaire
-- Estimation puissance ventilateur
-- Calcul coût énergétique annuel
-- Visualisation automatique du réseau (graph + géométrie)
-- API FastAPI (intégration Python / industrialisation)
+- **Solveur Nodal Non Linéaire** : Équilibrage automatique des débits par itération
+- **Simulation Multi-Régimes** : Choix entre régime rugueux (**Haaland**) et lisse (**Blasius**)
+- **Expertise du Chemin Critique** : Identification automatique de la branche la plus défavorable pour le calcul du ventilateur
+- **Dimensionnement Automatique** : Route `/suggest` pour calculer les dimensions optimales (D ou WxH) selon une vitesse cible
+- **Analyse Financière** : Estimation de la puissance réelle et du coût énergétique annuel
+- **Visualisation Dynamique** : Schémas PNG annotés avec codes couleurs et épaisseurs proportionnelles aux débits
 
 ---
 
-## 🧠 Modèle physique
+## 🧠 Modèle Physique Intégré
 
-Le solveur repose sur une **modélisation réseau simplifiée non linéaire**, adaptée au pré-dimensionnement HVAC. Il s’appuie sur les principes fondamentaux de la mécanique des fluides :
+Le moteur s'appuie sur les équations fondamentales de la mécanique des fluides :
 
-### 1. Conservation de la masse (nœuds)
+1. **Pertes de charge (Darcy-Weisbach)** : $\Delta P = \left( f \cdot \frac{L}{D} + \Sigma\zeta \right) \cdot \frac{\rho \cdot v^2}{2}$
+   - $f$ : Facteur de friction (Haaland si conduits industriels industriels et Blasius si conduits lisses)
+   - $L$ : Longueur du conduit (m)
+   - $D$ : Diamètre hydraulique (m)
+   - $Σζ$ : Somme des coefficients de pertes singulières (coudes, tés, registres)
+   - $ρ$ : Masse volumique de l’air (~1.204 kg/m³)
+   - $v$ : Vitesse de l’air (m/s)
+2. **Conservation de la masse** : $\Sigma Q_{in} - \Sigma Q_{out} = S$ (au nœud $i$)
+    - $S > 0$ : soufflage
+    - $S < 0$ : extraction
+    - $S = 0$ : simple transit
 
-À chaque nœud du réseau :
+3. **Formulation réseau (modèle résistif)** : $\Delta P = R \cdot Q^2$
+    - Chaque conduit est caractérisé par une résistance aéraulique $R$ :
+      $$R = \left[ f \cdot \frac{L}{D} + \Sigma\zeta \right] \cdot \frac{\rho}{2 \cdot S_{ect}^2}$$
+    - $Q$ : Débit volumique ($m^3/s$)
+    - $S_{ect}$ : Section du conduit ($m^2$)
 
-<p align="center">
-  <b>Σ Q = S</b>
-</p>
-
-- S > 0 : soufflage
-- S < 0 : extraction
-- S = 0 : simple transit
-
-### 2. Pertes de charge (Darcy–Weisbach)
-
-<p align="center">
-  <b>ΔP = [ f · (L/D) + Σζ ] · (ρ · v²) / 2</b>
-</p>
-
-Où :
-*   **f** : Facteur de friction (Darcy)
-*   **L** : Longueur du conduit (m) 
-*   **D** : Diamètre hydraulique (m)
-*   **Σζ** : Somme des coefficients de pertes singulières (coudes, tés, registres)
-*   **ρ** : Masse volumique de l’air (~1.204 kg/m³)
-*   **v** : Vitesse de l’air (m/s)
-
-### 3. Formulation réseau (modèle résistif)
-
-Chaque conduit est modélisé sous la forme :
-
-<p align="center">
-  <b>ΔP = R · Q²</b> 
-</p>
-
-avec :
-
-<p align="center">
-  <b>R = [ f · (L/D) + Σζ ] · [ ρ / (2 · S²) ]</b>
-</p>
-
-*   **Q** : Débit volumique (m³/s)
-*   **S** : Section du conduit (m²)
-*   **R** : résistance aéraulique
-
-### 4. Relation débit–pression (inverse)
-
-<p align="center">
-  <b>Q = sign(ΔP) · √( |ΔP| / R )</b> 
-</p>
-
+4. **Relation débit–pression (inverse)** : $Q = \text{sign}(\Delta P) \cdot \sqrt{\frac{|\Delta P|}{R}}$
+    - Cette formulation permet de déduire dynamiquement le débit circulant dans une branche en fonction de la différence de pression entre deux nœuds
 ---
 
 ## ⚙️ Méthode numérique
 
-Le solveur repose sur une relaxation nodale itérative :
+Le solveur utilise un algorithme de **relaxation nodale itérative** pour équilibrer le réseau :
 
-1. Initialisation des pressions nodales  
-2. Calcul des débits via Q(ΔP)  
-3. Calcul des déséquilibres de continuité aux nœuds  
-4. Mise à jour des pressions :
-
-<p align="center">
-  <b>P(k+1) = P(k) + α · imbalance</b> 
-</p>
-
-- α : facteur de relaxation (stabilité numérique)
-- imbalance = résidu de continuité nodale (ΣQ - S) au nœud i
+1. **Initialisation** des pressions nodales $P$
+2. **Calcul des débits** $Q$ dans chaque branche via la relation $Q(\Delta P, R)$
+3. **Évaluation du résidu** de continuité à chaque nœud ($\Sigma Q - S$)
+4. **Mise à jour** des pressions pour l'itération suivante :
+   $$P^{(k+1)} = P^{(k)} + \alpha \cdot \text{imbalance}$$
+   - $\alpha$ : facteur de relaxation garantissant la stabilité de la convergence numérique
+   - imbalance : résidu de continuité nodale (ΣQ - S) au nœud i
 
 ---
 
-## 🔍 Hypothèses
-- écoulement incompressible
-- régime permanent
-- facteur de friction constant
-- pertes singulières regroupées en ζ
-- pas de dynamique transitoire
-- pas de courbe ventilateur intégrée
+## 🔍 Hypothèses de Modélisation
+
+Pour le pré-dimensionnement, le moteur suit les hypothèses classiques :
+- **Écoulement incompressible** et régime permanent
+- **Mélange parfait** aux nœuds (pas de pertes de charge de mélange complexes)
+- **Pertes singulières** discrétisées via les coefficients $\zeta$
+- **Hypothèse de fluide parfait** excluant les effets transitoires ou thermiques complexes
 
 ---
 
-## 📖 API
+## 📖 Documentation API
+
+L'API est documentée interactivement via Swagger et Redoc.
+
+- **Swagger UI** : [`http://127.0.0.1:8000/docs`](http://127.0.0.1:8000/docs)
+- **ReDoc** : [`http://127.0.0.1:8000/redoc`](http://127.0.0.1:8000/redoc)
+
+### Endpoints Principaux
+
+| Méthode | Route | Description |
+| :--- | :--- | :--- |
+| `POST` | `/network/init` | Réinitialise le projet actuel. |
+| `POST` | `/network/nodes` | Ajoute des nœuds (terminaux ou transit). |
+| `POST` | `/network/ducts` | Ajoute des conduits (circulaires ou rectangulaires). |
+| `GET` | `/network/solve` | Résout le réseau et retourne l'analyse énergétique complète. |
+| `GET` | `/suggest` | Suggère des dimensions selon $Q$ et $V_{target}$. |
+| `GET` | `/network/visualize` | Génère le schéma technique dynamique. |
+
+---
 
 Swagger : [`http://127.0.0.1:8000/docs`](http://127.0.0.1:8000/docs)
 
