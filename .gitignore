@@ -23,8 +23,3 @@ Thumbs.db
 
 # Jupyter
 .ipynb_checkpoints/
-
-# Outputs projet (important pour ton cas HVAC)
-docs/*.png
-output/
-results/
