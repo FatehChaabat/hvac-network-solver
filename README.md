@@ -98,27 +98,13 @@ L'API est documentée interactivement via Swagger et Redoc.
 | `GET` | `/suggest` | Suggère des dimensions selon $Q$ et $V_{target}$. |
 | `GET` | `/network/visualize` | Génère le schéma technique dynamique. |
 
----
-
-Swagger : [`http://127.0.0.1:8000/docs`](http://127.0.0.1:8000/docs)
-
-### Endpoints
-
-| Méthode | Route | Description |
-|--------|------|------------|
-| POST | /network/init | reset réseau |
-| POST | /network/nodes | ajout nœuds |
-| POST | /network/ducts | ajout conduits |
-| GET  | /network/solve | résolution réseau |
-| GET  | /network/visualize | schéma réseau |
-
 
 ---
 
-## 🏗️ Exemple 
+## 🏗️ Exemple d'Utilisation
 
-### Nœuds
-
+### 1. Définition des Nœuds
+On définit les points d'injection (soufflage) et les points d'extraction (terminaux).
 ```json
 [
   {"name": "A", "supply": 4000},
@@ -130,107 +116,120 @@ Swagger : [`http://127.0.0.1:8000/docs`](http://127.0.0.1:8000/docs)
 ]
 ```
 
-### Conduits
+### 2. Définition des Conduits
+Le moteur gère automatiquement le calcul du diamètre hydraulique pour les sections rectangulaires.
 
 ```json
 [
   {
     "name": "Troncon_Principal_AB",
-    "n1": "A",
-    "n2": "B",
-    "L": 5,
-    "D": 0.6,
-    "coeffs": [0.3]
+    "n1": "A", "n2": "B",
+    "L": 5, "D": 0.6,
+    "coeffs": [0.3],
+    "is_smooth": false
   },
   {
     "name": "Liaison_BC",
-    "n1": "B",
-    "n2": "C",
-    "L": 8,
-    "D": 0.5,
-    "coeffs": [0.3]
+    "n1": "B", "n2": "C",
+    "L": 8, "D": 0.5,
+    "coeffs": [0.3],
+    "is_smooth": false
   },
   {
     "name": "Branche_Proche_D",
-    "n1": "B",
-    "n2": "D",
-    "L": 2,
-    "D": 0.3,
-    "coeffs": [1.5]
+    "n1": "B", "n2": "D",
+    "L": 2, "D": 0.3,
+    "coeffs": [1.5],
+    "is_smooth": true
   },
   {
     "name": "Branche_Milieu_E",
-    "n1": "C",
-    "n2": "E",
-    "L": 10,
-    "W": 0.4,
-    "H": 0.25,
-    "coeffs": [1.5]
+    "n1": "C", "n2": "E",
+    "L": 10, "W": 0.4, "H": 0.25,
+    "coeffs": [1.5],
+    "is_smooth": false
   },
   {
     "name": "Branche_Lointaine_F",
-    "n1": "C",
-    "n2": "F",
-    "L": 25,
-    "W": 0.35,
-    "H": 0.2,
-    "coeffs": [2.0]
+    "n1": "C", "n2": "F",
+    "L": 25, "W": 0.35, "H": 0.2,
+    "coeffs": [2.0],
+    "is_smooth": false
   }
 ]
 ```
 
-### Solve 
-
+### 3. Résultat de l'Analyse
+Le solveur identifie le chemin critique et calcule l'impact énergétique.
 ```json
 {
   "summary": {
     "total_flow_m3h": 4000,
-    "max_pressure_drop_pa": 95.3,
-    "fan_power_watts": 151.27,
-    "estimated_annual_cost_euros": 94.54,
-    "efficiency_used": 0.7
+    "critical_node": "F",
+    "static_pressure_loss_pa": 96.04,
+    "dynamic_pressure_at_exit_pa": 21.31,
+    "total_pressure_fan_pa": 117.35,
+    "total_fan_power_watts": 173.86,
+    "efficiency_used": 0.75,
+    "estimated_annual_cost_euros": 108.66
   },
   "results": [
     {
       "duct": "Troncon_Principal_AB",
+      "n1": "A",
+      "n2": "B",
       "flow_m3h": 4000,
-      "delta_p_pa": 4.32,
-      "velocity_ms": 3.93
+      "velocity_ms": 3.93,
+      "delta_p_pa": 4.16,
+      "friction_model": "Haaland (Rugueux)"
     },
     {
       "duct": "Liaison_BC",
+      "n1": "B",
+      "n2": "C",
       "flow_m3h": 3000,
-      "delta_p_pa": 6.7,
-      "velocity_ms": 4.24
+      "velocity_ms": 4.24,
+      "delta_p_pa": 6.43,
+      "friction_model": "Haaland (Rugueux)"
     },
     {
       "duct": "Branche_Proche_D",
+      "n1": "B",
+      "n2": "D",
       "flow_m3h": 1000,
-      "delta_p_pa": 15.13,
-      "velocity_ms": 3.93
+      "velocity_ms": 3.93,
+      "delta_p_pa": 15.12,
+      "friction_model": "Blasius (Lisse)"
     },
     {
       "duct": "Branche_Milieu_E",
+      "n1": "C",
+      "n2": "E",
       "flow_m3h": 1500,
-      "delta_p_pa": 22.4,
-      "velocity_ms": 4.17
+      "velocity_ms": 4.17,
+      "delta_p_pa": 22.63,
+      "friction_model": "Haaland (Rugueux)"
     },
     {
       "duct": "Branche_Lointaine_F",
+      "n1": "C",
+      "n2": "F",
       "flow_m3h": 1500,
-      "delta_p_pa": 84.27,
-      "velocity_ms": 5.95
+      "velocity_ms": 5.95,
+      "delta_p_pa": 85.45,
+      "friction_model": "Haaland (Rugueux)"
     }
   ]
 }
 ```
 👉 Lecture ingénieur
-- continuité respectée
-- la branche la plus résistante impose la pression système
-- la dernière branche conditionne le dimensionnement ventilateur
-- vérification des vitesses pour confort / acoustique
+* **Continuité flux** : Conservation des masses respectée (loi des nœuds).
+* **Pression système** : Dictée par la somme cumulée du chemin le plus résistant.
+* **Dimensionnement ventilateur** : Conditionné par l'énergie cinétique de la dernière branche.
+* **Confort / Acoustique** : Vérification directe via le monitoring des vitesses.
+* **Précision physique** : Choix dynamique entre modèles Haaland et Blasius.
 
-### Visualisation
+### 4. Visualisation
 
 <p align="center">
 <img src="docs/hvac_network_results.png" width="850">
@@ -239,22 +238,6 @@ Swagger : [`http://127.0.0.1:8000/docs`](http://127.0.0.1:8000/docs)
 - bleu : circulaire
 - gris : rectangulaire
 - épaisseur = débit
-
----
-
-## 🔥 Roadmap
-- Solveur Newton-Raphson (niveau industriel)
-- Courbes ventilateur (Q–ΔP)
-- Export Excel / PDF
-- Interface web (dashboard CVC)
-- Optimisation automatique réseau
-
----
-
-## ⚠️ Disclaimer
-
-Outil de pré-dimensionnement uniquement.
-Ne remplace pas une étude CFD ou une validation réglementaire.
 
 ---
 
@@ -303,4 +286,4 @@ Ingénieur en mécanique des fluides et énergétique, spécialisé en modélisa
 ---
 
 ## 📄 Licence
-MIT License
+Ce projet est sous licence **MIT**. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
