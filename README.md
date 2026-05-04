@@ -6,6 +6,7 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=flat&logo=fastapi&logoColor=white)
 ![OpenAPI](https://img.shields.io/badge/OpenAPI-3.1-8BE9FD?style=flat&logo=openapi-initiative)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
+![Status](https://img.shields.io/badge/Status-Stable-brightgreen)
 
 ---
 
@@ -21,12 +22,12 @@ Ce projet propose une alternative open-source aux logiciels HVAC propriétaires 
 
 ## 🚀 Fonctionnalités Clés
 
-- **Solveur Nodal Non Linéaire** : Équilibrage automatique des débits par itération
+- **Solveur Nodal Non Linéaire** : Équilibrage automatique des débits par itération (Relaxation)
 - **Simulation Multi-Régimes** : Choix entre régime rugueux (**Haaland**) et lisse (**Blasius**)
-- **Expertise du Chemin Critique** : Identification automatique de la branche la plus défavorable pour le calcul du ventilateur
+- **Expertise du Chemin Critique** : Identification automatique de la branche la plus défavorable pour le calcul du ventilateur via algorithme de graphe (Dijkstra)
 - **Dimensionnement Automatique** : Route `/suggest` pour calculer les dimensions optimales (D ou WxH) selon une vitesse cible
-- **Analyse Financière** : Estimation de la puissance réelle et du coût énergétique annuel
-- **Visualisation Dynamique** : Schémas PNG annotés avec codes couleurs et épaisseurs proportionnelles aux débits
+- **Analyse Énergétique** : Estimation de la puissance réelle absorbée et du coût annuel (Standard Bureau 2500h/an)
+- **Visualisation Dynamique** : Schémas PNG annotés avec codes couleurs (sections) et épaisseurs proportionnelles aux débits
 
 ---
 
@@ -35,76 +36,46 @@ Ce projet propose une alternative open-source aux logiciels HVAC propriétaires 
 Le moteur s'appuie sur les équations fondamentales de la mécanique des fluides :
 
 1. **Pertes de charge (Darcy-Weisbach)** : $\Delta P = \left( f \cdot \frac{L}{D} + \Sigma\zeta \right) \cdot \frac{\rho \cdot v^2}{2}$
-   - $f$ : Facteur de friction (Haaland si conduits industriels industriels et Blasius si conduits lisses)
-   - $L$ : Longueur du conduit (m)
-   - $D$ : Diamètre hydraulique (m)
+   - $f$ : Facteur de friction (**Haaland** pour conduits rugueux, **Blasius** pour parois lisses)
    - $Σζ$ : Somme des coefficients de pertes singulières (coudes, tés, registres)
    - $ρ$ : Masse volumique de l’air (~1.204 kg/m³)
-   - $v$ : Vitesse de l’air (m/s)
-2. **Conservation de la masse** : $\Sigma Q_{in} - \Sigma Q_{out} = S$ (au nœud $i$)
-    - $S > 0$ : soufflage
-    - $S < 0$ : extraction
-    - $S = 0$ : simple transit
 
-3. **Formulation réseau (modèle résistif)** : $\Delta P = R \cdot Q^2$
-    - Chaque conduit est caractérisé par une résistance aéraulique $R$ :
-      $$R = \left[ f \cdot \frac{L}{D} + \Sigma\zeta \right] \cdot \frac{\rho}{2 \cdot S_{ect}^2}$$
-    - $Q$ : Débit volumique ($m^3/s$)
-    - $S_{ect}$ : Section du conduit ($m^2$)
+2. **Puissance et Énergie** : $P_{fan} = \frac{\Delta P_{totale} \cdot Q_{m3/s}}{\eta}$
+   - Prise en compte de la pression statique + pression dynamique de sortie
+   - $\eta$ : Rendement global du groupe moto-ventilateur
 
-4. **Relation débit–pression (inverse)** : $Q = \text{sign}(\Delta P) \cdot \sqrt{\frac{|\Delta P|}{R}}$
-    - Cette formulation permet de déduire dynamiquement le débit circulant dans une branche en fonction de la différence de pression entre deux nœuds
----
+3. **Conservation de la masse** : $\Sigma Q_{in} - \Sigma Q_{out} = S$ (Loi des nœuds de Kirchhoff)
+   - $S \neq 0$ pour les points d'injection ou d'extraction
 
-## ⚙️ Méthode numérique
-
-Le solveur utilise un algorithme de **relaxation nodale itérative** pour équilibrer le réseau :
-
-1. **Initialisation** des pressions nodales $P$
-2. **Calcul des débits** $Q$ dans chaque branche via la relation $Q(\Delta P, R)$
-3. **Évaluation du résidu** de continuité à chaque nœud ($\Sigma Q - S$)
-4. **Mise à jour** des pressions pour l'itération suivante :
-   $$P^{(k+1)} = P^{(k)} + \alpha \cdot \text{imbalance}$$
-   - $\alpha$ : facteur de relaxation garantissant la stabilité de la convergence numérique
-   - imbalance : résidu de continuité nodale (ΣQ - S) au nœud i
-
----
-
-## 🔍 Hypothèses de Modélisation
-
-Pour le pré-dimensionnement, le moteur suit les hypothèses classiques :
-- **Écoulement incompressible** et régime permanent
-- **Mélange parfait** aux nœuds (pas de pertes de charge de mélange complexes)
-- **Pertes singulières** discrétisées via les coefficients $\zeta$
-- **Hypothèse de fluide parfait** excluant les effets transitoires ou thermiques complexes
+4. **Formulation réseau (Modèle résistif)** : $\Delta P = R \cdot Q^2$
+   - Chaque conduit est modélisé par une résistance aéraulique $R$ dépendant de sa géométrie et de son état de surface
 
 ---
 
 ## 📖 Documentation API
 
-L'API est documentée interactivement via Swagger et Redoc.
+L'API est documentée interactivement via Swagger et Redoc :
 
 - **Swagger UI** : [`http://127.0.0.1:8000/docs`](http://127.0.0.1:8000/docs)
 - **ReDoc** : [`http://127.0.0.1:8000/redoc`](http://127.0.0.1:8000/redoc)
 
 ### Endpoints Principaux
 
-| Méthode | Route | Description |
-| :--- | :--- | :--- |
-| `POST` | `/network/init` | Réinitialise le projet actuel. |
-| `POST` | `/network/nodes` | Ajoute des nœuds (terminaux ou transit). |
-| `POST` | `/network/ducts` | Ajoute des conduits (circulaires ou rectangulaires). |
-| `GET` | `/network/solve` | Résout le réseau et retourne l'analyse énergétique complète. |
-| `GET` | `/suggest` | Suggère des dimensions selon $Q$ et $V_{target}$. |
-| `GET` | `/network/visualize` | Génère le schéma technique dynamique. |
-
+| Méthode | Route | Description | Format |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/network/init` | Réinitialise le projet actuel | JSON |
+| `POST` | `/network/nodes` | Ajoute des nœuds (terminaux ou transit) | JSON |
+| `POST` | `/network/ducts` | Ajoute des conduits (circulaires ou rectangulaires) | JSON |
+| `GET` | `/network/solve` | Résout le réseau et retourne l'analyse complète | JSON |
+| `GET` | `/suggest` | Suggère des dimensions selon $Q$ et $V_{target}$ | JSON |
+| `GET` | `/network/visualize` | Génère le schéma technique dynamique | PNG |
 
 ---
 
 ## 🏗️ Exemple d'Utilisation
 
 ### 1. Définition des Nœuds
-On définit les points d'injection (soufflage) et les points d'extraction (terminaux).
+On définit les points d'injection (soufflage) et les points d'extraction (terminaux)
 ```json
 [
   {"name": "A", "supply": 4000},
@@ -117,8 +88,7 @@ On définit les points d'injection (soufflage) et les points d'extraction (termi
 ```
 
 ### 2. Définition des Conduits
-Le moteur gère automatiquement le calcul du diamètre hydraulique pour les sections rectangulaires.
-
+Le moteur gère automatiquement le calcul du diamètre hydraulique pour les sections rectangulaires
 ```json
 [
   {
@@ -160,7 +130,7 @@ Le moteur gère automatiquement le calcul du diamètre hydraulique pour les sect
 ```
 
 ### 3. Résultat de l'Analyse
-Le solveur identifie le chemin critique et calcule l'impact énergétique.
+Le solveur identifie le chemin critique et calcule l'impact énergétique
 ```json
 {
   "summary": {
@@ -223,11 +193,11 @@ Le solveur identifie le chemin critique et calcule l'impact énergétique.
 }
 ```
 👉 Lecture ingénieur
-* **Continuité flux** : Conservation des masses respectée (loi des nœuds).
-* **Pression système** : Dictée par la somme cumulée du chemin le plus résistant.
-* **Dimensionnement ventilateur** : Conditionné par l'énergie cinétique de la dernière branche.
-* **Confort / Acoustique** : Vérification directe via le monitoring des vitesses.
-* **Précision physique** : Choix dynamique entre modèles Haaland et Blasius.
+* **Continuité flux** : Conservation des masses respectée (loi des nœuds)
+* **Pression système** : Dictée par la somme cumulée du chemin le plus résistant
+* **Dimensionnement ventilateur** : Conditionné par l'énergie cinétique de la dernière branche
+* **Confort / Acoustique** : Vérification directe via le monitoring des vitesses
+* **Précision physique** : Choix dynamique entre modèles Haaland et Blasius
 
 ### 4. Visualisation
 
