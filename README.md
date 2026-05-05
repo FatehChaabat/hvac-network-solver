@@ -35,14 +35,16 @@ Ce projet propose une alternative open-source aux logiciels HVAC propriétaires 
 
 Le moteur s'appuie sur les équations fondamentales de la mécanique des fluides :
 
-1. **Pertes de charge (Darcy-Weisbach)** : $\Delta P = \left( f \cdot \frac{L}{D} + \Sigma\zeta \right) \cdot \frac{\rho \cdot v^2}{2}$
+1. **Pertes de charge Darcy-Weisbach (en Pa)** : $\Delta P = \left( f \cdot \frac{L}{D} + \Sigma\zeta \right) \cdot \frac{\rho \cdot v^2}{2}$
    - $f$ : Facteur de friction (**Haaland** pour conduits rugueux, **Blasius** pour parois lisses)
    - $Σζ$ : Somme des coefficients de pertes singulières (coudes, tés, registres)
    - $ρ$ : Masse volumique de l’air (~1.204 kg/m³)
 
-2. **Puissance et Énergie** : $P_{fan} = \frac{\Delta P_{totale} \cdot Q_{m3/s}}{\eta}$
-   - Prise en compte de la pression statique + pression dynamique de sortie
-   - $\eta$ : Rendement global du groupe moto-ventilateur
+2. **Puissance et Énergie** : $P_{fan} = \frac{\Delta P_{totale} \cdot Q}{\eta}$
+   - $\Delta P_{totale}$ : Pression totale (statique + dynamique de sortie) en Pa.
+   - $Q$ : Débit volumique exprimé en $m^3/s$.
+   - $\eta$ : Rendement global du groupe moto-ventilateur (valeur par défaut : 0.75).
+   - Résultat $P_{fan}$ en **Watts**.
 
 3. **Conservation de la masse** : $\Sigma Q_{in} - \Sigma Q_{out} = S$ (Loi des nœuds de Kirchhoff)
    - $S \neq 0$ pour les points d'injection ou d'extraction
@@ -63,12 +65,13 @@ L'API est documentée interactivement via Swagger et Redoc :
 
 | Méthode | Route | Description | Format |
 | :--- | :--- | :--- | :--- |
+| `GET` | `/` | **Root** : Vérification de l'état du serveur | JSON |
 | `POST` | `/network/init` | Réinitialise le projet actuel | JSON |
 | `POST` | `/network/nodes` | Ajoute des nœuds (terminaux ou transit) | JSON |
 | `POST` | `/network/ducts` | Ajoute des conduits (circulaires ou rectangulaires) | JSON |
-| `GET` | `/network/solve` | Résout le réseau et retourne l'analyse complète | JSON |
-| `GET` | `/suggest` | Suggère des dimensions selon $Q$ et $V_{target}$ | JSON |
-| `GET` | `/network/visualize` | Génère le schéma technique dynamique | PNG |
+| `GET` | `/network/solve` | **Solveur** : Calcule l'équilibrage et le chemin critique | JSON |
+| `GET` | `/network/visualize` | **Rendu** : Génère le schéma PNG dynamique | PNG |
+| `GET` | `/suggest` | **Optimisation** : Suggère des dimensions ($D$ ou $W \times H$) | JSON |
 
 ---
 
@@ -137,11 +140,11 @@ Le solveur identifie le chemin critique et calcule l'impact énergétique
     "total_flow_m3h": 4000,
     "critical_node": "F",
     "static_pressure_loss_pa": 96.04,
-    "dynamic_pressure_at_exit_pa": 21.31,
-    "total_pressure_fan_pa": 117.35,
-    "total_fan_power_watts": 173.86,
+    "dynamic_pressure_at_exit_pa": 21.33,
+    "total_pressure_fan_pa": 117.37,
+    "total_fan_power_watts": 173.88,
     "efficiency_used": 0.75,
-    "estimated_annual_cost_euros": 108.66
+    "estimated_annual_cost_euros": 108.68
   },
   "results": [
     {
@@ -199,15 +202,19 @@ Le solveur identifie le chemin critique et calcule l'impact énergétique
 * **Confort / Acoustique** : Vérification directe via le monitoring des vitesses
 * **Précision physique** : Choix dynamique entre modèles Haaland et Blasius
 
+---
+
 ### 4. Visualisation
 
 <p align="center">
-<img src="docs/hvac_network_results.png" width="850">
+  <img src="docs/hvac_network_results.png" width="850" alt="Schéma technique du réseau aéraulique généré par l'API">
+</p>
 
-👉 Lecture :
-    * 🔵 **Bleu** : Conduits circulaires.
-    * 🔴 **Rouge** : Conduits rectangulaires.
-    * 🟢 **Vert / 🟠 Orange** : Identification automatique des sources et des bouches d'extraction.
+👉 **Guide de lecture :**
+* 🔵 **Bleu** : Conduits à section circulaire.
+* 🔴 **Rouge** : Conduits à section rectangulaire.
+* 🟢 **Vert / 🟠 Orange** : Identification automatique des sources (Supply) et des bouches d'extraction.
+* **Épaisseur des lignes** : Proportionnelle au débit circulant dans le tronçon.
 
 ---
 
@@ -245,6 +252,7 @@ python main.py
 ```
 
 ---
+
 ## 👤 Auteur
 Ingénieur en mécanique des fluides et énergétique, spécialisé en modélisation et systèmes CVC.
 
