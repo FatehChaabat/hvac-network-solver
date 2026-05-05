@@ -205,9 +205,9 @@ Le solveur identifie le chemin critique et calcule l'impact énergétique
 <img src="docs/hvac_network_results.png" width="850">
 
 👉 Lecture :
-- bleu : circulaire
-- gris : rectangulaire
-- épaisseur = débit
+    * 🔵 **Bleu** : Conduits circulaires.
+    * 🔴 **Rouge** : Conduits rectangulaires.
+    * 🟢 **Vert / 🟠 Orange** : Identification automatique des sources et des bouches d'extraction.
 
 ---
 
@@ -239,8 +239,8 @@ cd hvac-network-solver
 # Installer les dépendances
 pip install -r requirements.txt
 
-# Lancer le serveur
-uvicorn main:app --reload    
+# Lancer l'API 
+python main.py  
 
 ```
 

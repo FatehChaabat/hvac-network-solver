@@ -23,3 +23,6 @@ Thumbs.db
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Fichiers de données temporaires (si tu en utilises)
+temp_network.json
