@@ -168,34 +168,47 @@ Le moteur gère automatiquement le diamètre hydraulique et le régime de fricti
 ]
 ```
 
-
 ### 4. Résolution & Analyse (`GET /network/solve`)
 Le solveur identifie le chemin critique et calcule l'impact énergétique. Les résultats sont exportés en JSON pour la console et en PDF pour le rapport d'expertise.
+```text
+===== 1. NETWORK SUMMARY =====
+   Total flow (m3/h)                  : 4000.0
+   Critical node                      : F
+   Static pressure loss (Pa)          : 96.04
+   Dynamic pressure at exit (Pa)      : 21.33
+   Total pressure fan (Pa)            : 117.37
+   Total fan power (W)                : 173.88
+   Efficiency used                    : 0.75
+   Estimated annual cost (€)          : 108.68
 
-### 3. Résultat de l'Analyse
-Le solveur identifie le chemin critique et calcule l'impact énergétique
-803fdb (Mise à jour calculs, styles graphiques et image démo README)
+===== 2. DUCT DETAILS =====
+   Duct name                 | Air flow (m3/h)    | Velocity (m/s)     | Pressure loss (Pa)  
+   ------------------------------------------------------------------------------------------
+   Main_Section_AB           |       4000.0       |        3.93        |         4.16        
+   Connection_BC             |       3000.0       |        4.24        |         6.43        
+   Near_Branch_D             |       1000.0       |        3.93        |        15.12        
+   Middle_Branch_E           |       1500.0       |        4.17        |        22.63        
+   Far_Branch_F              |       1500.0       |        5.95        |        85.45        
 
-
-### 4. Résolution & Analyse (`GET /network/solve`)
-Le solveur identifie le chemin critique et calcule l'impact énergétique. Les résultats sont exportés en JSON pour la console et en PDF pour le rapport d'expertise.
-
+===== 3. SOLVER METADATA =====
+   Execution time (s)                 : 1.341
+   Convergence status                 : stable
+   Residual error (m3/s)              : 1.28e-09
+   Timestamp                          : 05/05/2026 21:18:00
+   Pdf report                         : report_aeraulique.pdf
+```
 👉 **Intelligence métier intégrée :**
 
 - **Équilibrage précis** : Le moteur vérifie la conservation des masses à chaque nœud pour garantir des débits réels.
 - **Chemin critique** : Il identifie automatiquement le point le plus défavorable (ex: nœud F) pour bien choisir le ventilateur.
 - **Bilan financier** : Il calcule le coût électrique annuel pour évaluer la rentabilité de l'installation.
 
-
-- **Équilibrage précis** : Le moteur vérifie la conservation des masses à chaque nœud pour garantir des débits réels.
-- **Chemin critique** : Il identifie automatiquement le point le plus défavorable (ex: nœud F) pour bien choisir le ventilateur.
-- **Bilan financier** : Il calcule le coût électrique annuel pour évaluer la rentabilité de l'installation.
-
->>>>>>> 86338be (Mise à jour du solveur et des graphiques (README synchronisé))
 ### 5. Visualisation (`GET /network/visualize`)
 Génération du schéma technique annoté incluant les débits, les vitesses et le codage couleur par type de section.
 
-
+<p align="center">
+  <img src="docs/temp_network_schema_demo.png" width="850" alt="Schéma technique du réseau aéraulique généré par l'API">
+</p>
 
 👉 **Guide de lecture :**
 * **Bleu** : Conduits à section circulaire.
