@@ -207,7 +207,7 @@ Le solveur identifie le chemin critique et calcule l'impact énergétique. Les r
 Génération du schéma technique annoté incluant les débits, les vitesses et le codage couleur par type de section.
 
 <p align="center">
-  <img src="docs/temp_network_schema.png" width="850" alt="Schéma technique du réseau aéraulique généré par l'API">
+  <img src="docs/temp_network_schema_demo.png" width="850" alt="Schéma technique du réseau aéraulique généré par l'API">
 </p>
 
 👉 **Guide de lecture :**
@@ -234,7 +234,7 @@ hvac-network-solver/
 ├── report_gen.py                                   # Générateur de rapports PDF
 │
 ├── docs/
-│   └── hvac_network_results.png                    # Image démo
+│   └── temp_network_schema_demo.png                    # Image démo
 │
 └── .gitignore                                      # Fichiers à exclure
 
