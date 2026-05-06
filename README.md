@@ -234,7 +234,7 @@ hvac-network-solver/
 ├── report_gen.py                                   # Générateur de rapports PDF
 │
 ├── docs/
-│   └── temp_network_schema_demo.png                    # Image démo
+│   └── temp_network_schema_demo.png                # Image démo
 │
 └── .gitignore                                      # Fichiers à exclure
 
