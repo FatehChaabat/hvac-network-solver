@@ -169,7 +169,7 @@ Le moteur gère automatiquement le diamètre hydraulique et le régime de fricti
 ```
 
 ### 4. Résolution & Analyse (`GET /network/solve`)
-Le solveur identifie le chemin critique et calcule l'impact énergétique.
+Le solveur identifie le chemin critique et calcule l'impact énergétique. Les résultats sont exportés en JSON pour la console et en PDF pour le rapport d'expertise.
 ```text
 ===== 1. NETWORK SUMMARY =====
    Total flow (m3/h)                  : 4000.0
