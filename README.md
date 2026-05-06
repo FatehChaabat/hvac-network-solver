@@ -1,6 +1,6 @@
 # HVAC Network Solver API
 
->Cette **API FastAPI** est un moteur de calcul spécialisé dans **l'équilibrage aéraulique** et le **dimensionnement de réseaux de ventilation**. Elle permet de résoudre des systèmes complexes via une approche nodale non linéaire et d'aider au choix des composants.
+>Cette **API FastAPI** est un moteur de calcul spécialisé dans **l'équilibrage aéraulique** et le **dimensionnement de réseaux de ventilation**. Elle résout des systèmes complexes via une approche nodale et identifie automatiquement les contraintes critiques du réseau.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=flat&logo=fastapi&logoColor=white)
@@ -12,20 +12,21 @@
 
 ## 💡 Contexte & Vision
 
-- **Transparence** : Modèles physiques explicites (Haaland, Blasius, Darcy-Weisbach).
-- **Flexibilité** : Intégrable dans des workflows d'optimisation ou de CAO via une API REST.
+- **Transparence** : Utilisation de modèles physiques explicites et éprouvés (Haaland, Blasius, Darcy-Weisbach).
+- **Fiabilité** : Convergence mathématique garantissant le respect strict de la loi de conservation des masses.
+- **Flexibilité** : Architecture REST permettant une intégration fluide dans des workflows d'optimisation énergétique ou de CAO.
 - **Modernité** : Documentation conforme au standard OpenAPI 3.1.
 
 ---
 
 ## 🚀 Fonctionnalités Clés
 
-- **Simulation Multi-Régimes** : Calcul des pertes de charge selon la nature des matériaux (conduits lisses ou rugueux) et les singularités du réseau.
-- **Solveur Nodal Non Linéaire** : Équilibrage automatique des débits par méthode itérative (Newton-Raphson / Relaxation).
-- **Expertise du Chemin Critique** : Identification automatique de la branche critique pour le dimensionnement du ventilateur.
-- **Analyse Énergétique** : Estimation de la puissance réelle absorbée et du coût d'exploitation annuel.
-- **Rapports PDF Professionnels** : Édition d'un document technique regroupant les bilans aérauliques, les calculs énergétiques et les schémas.
-- **Assistant de Design** : Calculateur autonome pour le prédimensionnement de gaines *(Voir [l'annexe technique](#duct-sizer))*.
+- **Simulation Multi-Régimes** : Calcul des pertes de charge (frottements et singularités) via les modèles de **Haaland** (rugueux) et **Blasius** (lisse).
+- **Solveur Nodal Non Linéaire** : Équilibrage automatique des débits par une méthode itérative de **descente de gradient (Relaxation)**. L'algorithme ajuste les pressions nodales pour annuler les résidus de flux.
+- **Expertise du Chemin Critique** : Identification de la branche la plus défavorable via l'**algorithme de Dijkstra** pour un dimensionnement précis du ventilateur.
+- **Analyse Énergétique** : Estimation de la puissance électrique réelle absorbée (statique + dynamique) et calcul du coût d'exploitation annuel.
+- **Rapports PDF Professionnels** : Génération automatisée d'un document technique structuré incluant bilans aérauliques, énergétiques et schémas de réseau.
+- **Assistant de Design** : Module autonome de prédimensionnement des conduits circulaires et rectangulaires selon des cibles de vitesse et de débit. *(Voir [l'annexe technique](#duct-sizer))*.
 
 ---
 
@@ -35,7 +36,7 @@ L'algorithme traite le réseau suivant une séquence logique, transformant la to
 
 ### Étape 1 : Caractérisation physique (Modèle de Friction)
 
-La perte de charge élémentaire est régie par l'équation de **Darcy-Weisbach**. Cette étape détermine l'opposition au mouvement pour chaque tronçon :
+La perte de charge est régie par l'équation de **Darcy-Weisbach** :
 
 <br>
 
@@ -43,16 +44,14 @@ $$ \Delta P = \left( f \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rh
 
 <br>
 
-- **$f$** : Facteur de friction dynamique (calculé via **Haaland** pour la rugosité ou **Blasius** pour les parois lisses).
-- **$L$** : Longueur linéaire du tronçon de conduit (m).
+- **$f$** : Facteur de friction dynamique, ajusté à chaque tronçon selon le régime d'écoulement et la rugosité (**Blasius** pour les parois lisses et **Haaland** pour les conduits rugueux).
 - **$D_h$** : Diamètre hydraulique, assurant la compatibilité entre gaines circulaires et rectangulaires (m). 
 - **$\Sigma\zeta$** : Somme des coefficients de pertes singulières (coudes, tés, etc.).
-- **$\rho$** : Masse volumique de l'air ($\approx 1.204 \text{ kg/m}^3$ à 20°C).
 - **$v$** : Vitesse moyenne de flux dans le tronçon (m/s).
 
 ### Étape 2 : Formulation Mathématique
 
-Pour permettre la résolution matricielle, le code condense les propriétés physiques en une **résistance aéraulique** $R$ constante ($Pa \cdot s^2/m^6$) :
+Le code condense les propriétés physiques en une **résistance aéraulique** $R$ ($Pa \cdot s^2/m^6$) calculée par :
 
 <br>
 
@@ -60,7 +59,7 @@ $$ R = \left( f \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho}{2 \c
 
 <br>
 
-- Cette abstraction permet d'établir la relation quadratique **$\Delta P = R \cdot Q^2$**. Le problème devient alors un système d'équations où les pressions aux nœuds sont les inconnues principales.
+- Cette abstraction permet d'établir la relation quadratique **$\Delta P = R \cdot Q^2$**. Le problème est alors traité comme un système de pressions nodales interconnectées par des résistances.
 
 ### Étape 3 : Résolution du Réseau (Loi des Nœuds)
 
@@ -72,15 +71,15 @@ $$ \Sigma Q_{in} - \Sigma Q_{out} = S $$
 
 <br>
 
-- **$S$ (Terme Source)** : Représente le débit imposé au nœud ($m^3/s$).
+- **$S$ (Terme Source)** : Définit la contrainte de débit au nœud ($m^3/s$).
     - **$S = 0$** : Nœud de transit (simple répartition).
     - **$S < 0$** : Bouche d'extraction (consommation locale).
-    - **$S > 0$** : Injection ventilateur (apport global, égal à **$\Sigma |S_{bouches}|$**).
-- **Algorithme Nodal** : Le système est résolu via une **matrice Jacobienne de conductances**. Le script ajuste itérativement les pressions jusqu'à la **convergence** (annulation des résidus de débit).
+    - **$S > 0$** : Injection ventilateur (apport global).
+- L'**algorithme de relaxation** ajuste les pressions nodales jusqu'à ce que l'imbalance (résidu de débit) tende vers zéro.
 
 ### Étape 4 : Bilan Énergétique Global
 
-Une fois l'équilibre des pressions atteint, le code identifie la branche la plus défavorisée et calcule la performance globale :
+Une fois l'équilibre atteint, l'algorithme de **Dijkstra** identifie le parcours le plus contraignant pour dimensionner le ventilateur :
 
 <br>
 
@@ -89,9 +88,9 @@ $$ P_{fan} = \frac{\Delta P_{totale} \cdot Q_{total}}{\eta} $$
 <br>
 
 - **$Q_{total}$** : Débit volumique total brassé par le ventilateur ($m^3/s$).
-- **$\Delta P_{totale}$** : Pression statique requise pour vaincre le **chemin critique** (le trajet le plus résistant du réseau).
+- **$\Delta P_{totale}$** : Pression statique cumulée sur le chemin critique plus la pression dynamique résiduelle.
 - **$\eta$** : Rendement global du groupe moto-ventilateur (défaut : 0.75).
-- **$P_{fan}$** : Puissance électrique absorbée (W), dimensionnant l'impact énergétique du système.
+- **$P_{fan}$** : Puissance électrique absorbée (W), permettant d'évaluer l'impact énergétique et le coût d'exploitation annuel.
 
 ---
 
