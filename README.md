@@ -1,6 +1,6 @@
 # HVAC Network Solver API
 
->Cette **API FastAPI** est un moteur de calcul spécialisé dans **l'équilibrage aéraulique** et le **dimensionnement de réseaux de ventilation**. Elle résout des systèmes complexes via une approche nodale et identifie automatiquement les contraintes critiques du réseau.
+>Cette **API FastAPI** est un moteur de calcul spécialisé dans **l'équilibrage aéraulique** et le **dimensionnement de réseaux de ventilation**. Elle résout des systèmes complexes via une approche nodale, aide au choix des composants et identifie automatiquement les contraintes critiques du réseau.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=flat&logo=fastapi&logoColor=white)
@@ -21,11 +21,11 @@
 
 ## 🚀 Fonctionnalités Clés
 
-- **Simulation Multi-Régimes** : Calcul des pertes de charge (frottements et singularités) via les modèles de **Haaland** (rugueux) et **Blasius** (lisse).
-- **Solveur Nodal Non Linéaire** : Équilibrage automatique des débits par une méthode itérative de **descente de gradient (Relaxation)**. L'algorithme ajuste les pressions nodales pour annuler les résidus de flux.
-- **Expertise du Chemin Critique** : Identification de la branche la plus défavorable via l'**algorithme de Dijkstra** pour un dimensionnement précis du ventilateur.
+- **Simulation Multi-Régimes** : Calcul des pertes de charge (frottements et singularités) via les modèles de Haaland (rugueux) et Blasius (lisse).
+- **Solveur Nodal Non Linéaire** : Équilibrage automatique des débits par une méthode itérative de descente de gradient (Relaxation). L'algorithme ajuste les pressions nodales pour annuler les résidus de flux.
+- **Expertise du Chemin Critique** : Identification de la branche la plus défavorable via l'algorithme de Dijkstra pour un dimensionnement précis du ventilateur.
 - **Analyse Énergétique** : Estimation de la puissance électrique réelle absorbée (statique + dynamique) et calcul du coût d'exploitation annuel.
-- **Rapports PDF Professionnels** : Génération automatisée d'un document technique structuré incluant bilans aérauliques, énergétiques et schémas de réseau.
+- **Rapports PDF Professionnels** : Génération automatisée d'un document technique structuré incluant les bilans aérauliques, énergétiques et schémas de réseau.
 - **Assistant de Design** : Module autonome de prédimensionnement des conduits circulaires et rectangulaires selon des cibles de vitesse et de débit. *(Voir [l'annexe technique](#duct-sizer))*.
 
 ---
@@ -44,7 +44,7 @@ $$ \Delta P = \left( f \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rh
 
 <br>
 
-- **$f$** : Facteur de friction dynamique, ajusté à chaque tronçon selon le régime d'écoulement et la rugosité (**Blasius** pour les parois lisses et **Haaland** pour les conduits rugueux).
+- **$f$** : Facteur de friction dynamique, ajusté à chaque tronçon selon le régime d'écoulement et la rugosité (Blasius pour les parois lisses et Haaland pour les conduits rugueux).
 - **$D_h$** : Diamètre hydraulique, assurant la compatibilité entre gaines circulaires et rectangulaires (m). 
 - **$\Sigma\zeta$** : Somme des coefficients de pertes singulières (coudes, tés, etc.).
 - **$v$** : Vitesse moyenne de flux dans le tronçon (m/s).
@@ -59,7 +59,7 @@ $$ R = \left( f \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho}{2 \c
 
 <br>
 
-- Cette abstraction permet d'établir la relation quadratique **$\Delta P = R \cdot Q^2$**. Le problème est alors traité comme un système de pressions nodales interconnectées par des résistances.
+- Cette abstraction permet d'établir la relation quadratique $\Delta P = R \cdot Q^2$. Le problème est alors traité comme un système de pressions nodales interconnectées par des résistances.
 
 ### Étape 3 : Résolution du Réseau (Loi des Nœuds)
 
@@ -75,7 +75,15 @@ $$ \Sigma Q_{in} - \Sigma Q_{out} = S $$
     - **$S = 0$** : Nœud de transit (simple répartition).
     - **$S < 0$** : Bouche d'extraction (consommation locale).
     - **$S > 0$** : Injection ventilateur (apport global).
-- L'**algorithme de relaxation** ajuste les pressions nodales jusqu'à ce que l'imbalance (résidu de débit) tende vers zéro.
+- **Mécanisme de Couplage Pression-Débit** : À chaque itération, le débit $Q$ circulant dans un tronçon est mis à jour selon l'écart de pression actuel entre ses deux nœuds :
+
+<br>
+
+$$ Q = \text{sign}(P_{1} - P_{2}) \cdot \sqrt{\frac{|P_{1} - P_{2}|}{R}} $$
+
+<br>
+
+- **Algorithme de relaxation** : Le système utilise une méthode de descente de gradient pour ajuster les pressions nodales. Si un nœud présente un résidu de débit (imbalance), sa pression est corrigée via un facteur de relaxation $\alpha$. Ce processus itératif se poursuit jusqu'à la convergence vers un état stationnaire, garantissant une précision aéraulique rigoureuse (résidu < $10^{-9}$ m³/s).
 
 ### Étape 4 : Bilan Énergétique Global
 
