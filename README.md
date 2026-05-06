@@ -20,8 +20,8 @@
 
 ## 🚀 Fonctionnalités Clés
 
-- **Solveur Nodal Non Linéaire** : Équilibrage automatique des débits par méthode itérative (Relaxation).
 - **Simulation Multi-Régimes** : Calcul des pertes de charge selon la nature des matériaux (conduits lisses ou rugueux) et les singularités du réseau.
+- **Solveur Nodal Non Linéaire** : Équilibrage automatique des débits par méthode itérative (Newton-Raphson / Relaxation).
 - **Expertise du Chemin Critique** : Identification automatique de la branche critique pour le dimensionnement du ventilateur.
 - **Analyse Énergétique** : Estimation de la puissance réelle absorbée et du coût d'exploitation annuel.
 - **Rapports PDF Professionnels** : Édition d'un document technique regroupant les bilans aérauliques, les calculs énergétiques et les schémas.
@@ -29,54 +29,69 @@
 
 ---
 
-## 🧠 Modèle Physique Intégré
+## 🔬 Méthodologie de Calcul
 
-Le moteur s’appuie sur les équations fondamentales de la mécanique des fluides :
+L'algorithme traite le réseau suivant une séquence logique, transformant la topologie physique en un système mathématique équilibré :
 
-1. **Pertes de charge (Darcy-Weisbach)** :
+### Étape 1 : Caractérisation physique (Modèle de Friction)
+
+La perte de charge élémentaire est régie par l'équation de **Darcy-Weisbach**. Cette étape détermine l'opposition au mouvement pour chaque tronçon :
+
 <br>
 
 $$ \Delta P = \left( f \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho \cdot v^2}{2} $$
 
 <br>
 
-- **$f$** : Facteur de friction (Haaland pour conduits rugueux, Blasius pour conduits lisses).
+- **$f$** : Facteur de friction dynamique (calculé via **Haaland** pour la rugosité ou **Blasius** pour les parois lisses).
 - **$L$** : Longueur linéaire du tronçon de conduit (m).
-- **$D_h$** : Diamètre hydraulique calculé selon la section (m).
-- **$\Sigma\zeta$** : Somme des coefficients de pertes singulières (coudes, tés, registres).
-- **$\rho$** : Masse volumique de l'air (~ 1.204 $kg/m^3$ à 20°C et 1 atm).
-- **$v$** : Vitesse moyenne de l'air dans la section (m/s).
+- **$D_h$** : Diamètre hydraulique, assurant la compatibilité entre gaines circulaires et rectangulaires (m). 
+- **$\Sigma\zeta$** : Somme des coefficients de pertes singulières (coudes, tés, etc.).
+- **$\rho$** : Masse volumique de l'air ($\approx 1.204 \text{ kg/m}^3$ à 20°C).
+- **$v$** : Vitesse moyenne de flux dans le tronçon (m/s).
 
-2. **Puissance et Énergie** :
+### Étape 2 : Formulation Mathématique
+
+Pour permettre la résolution matricielle, le code condense les propriétés physiques en une **résistance aéraulique** $R$ constante ($Pa \cdot s^2/m^6$) :
+
 <br>
 
-$$ P_{fan} = \frac{\Delta P_{totale} \cdot Q}{\eta} $$
+$$ R = \left( f \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho}{2 \cdot A^2} $$
 
 <br>
 
-- **$\Delta P_{totale}$** : Pression totale (statique + dynamique) au point le plus défavorable (Pa).
-- **$Q$** : Débit volumique total circulant dans le ventilateur ($m^3/s$).
-- **$\eta$** : Rendement global du groupe moto-ventilateur (défaut : 0.75).
-- **$P_{fan}$** : Résultat en Watts.
+- Cette abstraction permet d'établir la relation quadratique **$\Delta P = R \cdot Q^2$**. Le problème devient alors un système d'équations où les pressions aux nœuds sont les inconnues principales.
 
-3. **Conservation de la masse (Loi des nœuds de Kirchhoff)** :
+### Étape 3 : Résolution du Réseau (Loi des Nœuds)
+
+Le solveur équilibre les pressions en appliquant la **Conservation de la masse** (Loi de Kirchhoff) à chaque nœud du réseau: 
+
 <br>
 
 $$ \Sigma Q_{in} - \Sigma Q_{out} = S $$
 
- <br>
-
-- **$S \neq 0$** pour les points d'injection ou d'extraction.
-
-4. **Formulation réseau (Modèle résistif)** :
 <br>
 
-$$ \Delta P = R \cdot Q^2 $$
+- **$S$ (Terme Source)** : Représente le débit imposé au nœud ($m^3/s$).
+    - **$S = 0$** : Nœud de transit (simple répartition).
+    - **$S < 0$** : Bouche d'extraction (consommation locale).
+    - **$S > 0$** : Injection ventilateur (apport global, égal à **$\Sigma |S_{bouches}|$**).
+- **Algorithme Nodal** : Le système est résolu via une **matrice Jacobienne de conductances**. Le script ajuste itérativement les pressions jusqu'à la **convergence** (annulation des résidus de débit).
 
- <br>
- 
- - Chaque tronçon est modélisé par une **résistance aéraulique $R$**.
- - Cette formulation permet une résolution matricielle du réseau via une méthode de **relaxation non linéaire**.
+### Étape 4 : Bilan Énergétique Global
+
+Une fois l'équilibre des pressions atteint, le code identifie la branche la plus défavorisée et calcule la performance globale :
+
+<br>
+
+$$ P_{fan} = \frac{\Delta P_{totale} \cdot Q_{total}}{\eta} $$
+
+<br>
+
+- **$Q_{total}$** : Débit volumique total brassé par le ventilateur ($m^3/s$).
+- **$\Delta P_{totale}$** : Pression statique requise pour vaincre le **chemin critique** (le trajet le plus résistant du réseau).
+- **$\eta$** : Rendement global du groupe moto-ventilateur (défaut : 0.75).
+- **$P_{fan}$** : Puissance électrique absorbée (W), dimensionnant l'impact énergétique du système.
 
 ---
 
