@@ -168,8 +168,13 @@ Le moteur gère automatiquement le diamètre hydraulique et le régime de fricti
 ]
 ```
 
+<<<<<<< HEAD
 ### 4. Résolution & Analyse (`GET /network/solve`)
 Le solveur identifie le chemin critique et calcule l'impact énergétique. Les résultats sont exportés en JSON pour la console et en PDF pour le rapport d'expertise.
+
+### 3. Résultat de l'Analyse
+Le solveur identifie le chemin critique et calcule l'impact énergétique
+803fdb (Mise à jour calculs, styles graphiques et image démo README)
 ```text
 ===== 1. NETWORK SUMMARY =====
    Total flow (m3/h)                  : 4000.0
@@ -180,6 +185,31 @@ Le solveur identifie le chemin critique et calcule l'impact énergétique. Les r
    Total fan power (W)                : 173.88
    Efficiency used                    : 0.75
    Estimated annual cost (€)          : 108.68
+
+===== 2. DUCT DETAILS =====
+   Duct name                 | Air flow (m3/h)    | Velocity (m/s)     | Pressure loss (Pa)  
+   ------------------------------------------------------------------------------------------
+   Main_Section_AB           |       4000.0       |        3.93        |         4.16        
+   Connection_BC             |       3000.0       |        4.24        |         6.43        
+   Near_Branch_D             |       1000.0       |        3.93        |        15.12        
+   Middle_Branch_E           |       1500.0       |        4.17        |        22.63        
+   Far_Branch_F              |       1500.0       |        5.95        |        85.45        
+
+===== 3. SOLVER METADATA =====
+   Execution time (s)                 : 1.341
+   Convergence status                 : stable
+   Residual error (m3/s)              : 1.28e-09
+   Timestamp                          : 05/05/2026 21:18:00
+   Pdf report                         : report_aeraulique.pdf
+```
+
+👉 Lecture ingénieur
+* **Continuité flux** : Conservation des masses respectée (loi des nœuds)
+* **Pression système** : Dictée par la somme cumulée du chemin le plus résistant
+* **Dimensionnement ventilateur** : Conditionné par l'énergie cinétique de la dernière branche
+* **Confort / Acoustique** : Vérification directe via le monitoring des vitesses
+* **Précision physique** : Choix dynamique entre modèles Haaland et Blasius
+>>>>>>> c803fdb (Mise à jour calculs, styles graphiques et image démo README)
 
 ===== 2. DUCT DETAILS =====
    Duct name                 | Air flow (m3/h)    | Velocity (m/s)     | Pressure loss (Pa)  

@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import os
 import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -60,8 +61,9 @@ class HVACNetwork:
         """
         Résout le réseau par relaxation de pression (analogie Loi des Nœuds).
         Ajuste itérativement P pour annuler l'imbalance de débit à chaque nœud.
-        """                                                  
-        if not self.ducts: return                                                                      
+        """  
+        # Retourne 0 si vide pour éviter le bug NoneType                                                 
+        if not self.ducts: return 0.0                                                               
         
         # Nœud 0 sert de référence (0 Pa), les autres sont ajustés pour équilibrer les flux
         nodes_list = list(self.nodes.values())                                                         
@@ -74,11 +76,15 @@ class HVACNetwork:
                 # Calcul Q = sign(dp) * sqrt(|dp|/R) avec garde-fou numérique                                                   
                 d.flow = math.sqrt(abs(dp) / max(R, 1e-9)) * (1 if dp >= 0 else -1)                    
 
-            # 2. Calcul du bilan des flux à chaque nœud (Loi de Kirchhoff)      
+            # 2. Calcul du bilan des flux à chaque nœud "Imbalance" (Loi de Kirchhoff)      
             imb = {n.name: (n.supply / 3600.0) for n in nodes_list}                                    
             for d in self.ducts:                                                                       
                 imb[d.n1.name] -= d.flow                                                               
-                imb[d.n2.name] += d.flow                                                               
+                imb[d.n2.name] += d.flow   
+
+            # Calcul du résidu final pour l'API
+            # On prend l'imbalance maximale absolue constatée sur les nœuds : imb = (Débit entrant) - (Débit sortant)
+            max_imb = max(abs(v) for v in imb.values())                                                            
 
             # 3. Correction des pressions par gradient décent (Relaxation)            
             for j in range(1, len(nodes_list)):      
@@ -86,7 +92,10 @@ class HVACNetwork:
                 nodes_list[j].P += alpha * imb[nodes_list[j].name]                                     
             
             # 4. Affinage final : réduction du pas pour stabiliser la convergence
-            if i > iterations * 0.8: alpha *= 0.5                                                      
+            if i > iterations * 0.8: alpha *= 0.5 
+
+        # On retourne le résidu à l'API ---
+        return max_imb                                                   
      
     def get_results(self):                                                                            
         """
@@ -160,11 +169,17 @@ class HVACNetwork:
             "results": results_list                                                                    
         }
 
-    def draw_network(self):                                                                                    
+    def draw_network(self, save_path=None):                                                                                    
         """Génère le schéma technique avec distinction Circulaire / Rectangulaire et Noeuds dynamiques."""
+        
+        # Si aucun chemin "save_path" n'est fourni, on utilise le dossier docs par défaut
+        if save_path is None:
+            save_path = os.path.join("docs", "temp_network_schema.png")
+        
         # Nettoyage préventif
         plt.clf()                                                                                     
-        plt.close('all')    
+        plt.close('all') 
+        fig = plt.figure(figsize=(18, 12))   
 
         # Construction de la topologie via NetworkX                                                            
         G = nx.DiGraph()                                                                              
@@ -222,26 +237,34 @@ class HVACNetwork:
             
             # Annotations techniques (Débit et Vitesse) au centre du conduit
             mid = (p1 + p2) / 2                                                                        
-            plt.text(mid[0], mid[1] + 0.05, f"{d.name}\n{round(abs(d.flow*3600))} m3/h",                
-                     ha='center', fontsize=6, fontweight='bold', color='black')                                       
+            plt.text(mid[0], mid[1] + 0.0, f"{d.name}\n{round(abs(d.flow*3600))} m3/h",                
+                     ha='center', fontsize=11, fontweight='bold', color='black')                                       
             
             vitesse_val = abs(d.flow) / max(d.section_reelle, 1e-6)                                                 
-            plt.text(mid[0], mid[1] - 0.05, f"{vitesse_val:.2f} m/s",                                   
-                     ha='center', fontsize=7, fontstyle='italic', color='black')                                       
+            plt.text(mid[0], mid[1] - 0.06, f"{vitesse_val:.2f} m/s",                                   
+                     ha='center', fontsize=11, fontstyle='italic', color='black')                                       
 
         # 3. RENDU FINAL DES NŒUDS ET LABELS
         nx.draw_networkx_nodes(
             G, pos, 
-            node_size=700, 
+            node_size=3000, 
             node_color=node_colors, 
             edgecolors="black", 
             linewidths=1
         )                                          
         
         # Labels des nœuds en noir pour la lisibilité sur fond de couleur
-        nx.draw_networkx_labels(G, pos, font_size=9, font_color="black", font_weight="bold")           
+        nx.draw_networkx_labels(G, pos, font_size=14, font_color="black", font_weight="bold")           
         
-        plt.title("Schéma du Réseau de Ventilation", fontsize=14, fontweight='bold', pad=20)                    
+        #plt.title("Schéma du Réseau de Ventilation", fontsize=14, fontweight='bold', pad=20)                    
         plt.axis('equal')                                                                              
         plt.axis('off')                                                                                
         plt.tight_layout()
+        
+        # Sauvegarder en haute résolution avec recadrage auto 
+        if save_path:            
+            plt.savefig(save_path, format="png", dpi=300, bbox_inches='tight')
+
+        # Fermer peut libérer la mémoire
+        plt.close(fig)
+        

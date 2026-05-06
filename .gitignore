@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
 *.pyo
 *.pyd
 
@@ -8,7 +9,13 @@ __pycache__/
 venv/
 .env/
 env/
+ENV/
 .venv/
+
+# --- Distribution / Données ---
+dist/
+build/
+*.egg-info/
 
 # Logs
 *.log
@@ -26,3 +33,11 @@ Thumbs.db
 
 # Fichiers de données temporaires (si tu en utilises)
 temp_network.json
+
+# Résultats de calculs (PDF et schémas temporaires)
+docs/*.pdf
+docs/temp_network_schema.png
+
+
+# Autoriser uniquement l'image de démonstration pour le README
+!docs/temp_network_schema_demo.png
