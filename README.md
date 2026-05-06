@@ -207,7 +207,7 @@ Le solveur identifie le chemin critique et calcule l'impact énergétique. Les r
 Génération du schéma technique annoté incluant les débits, les vitesses et le codage couleur par type de section.
 
 <p align="center">
-  <img src="docs/hvac_network_results.png" width="850" alt="Schéma technique du réseau aéraulique généré par l'API">
+  <img src="docs/temp_network_schema.png" width="850" alt="Schéma technique du réseau aéraulique généré par l'API">
 </p>
 
 👉 **Guide de lecture :**
