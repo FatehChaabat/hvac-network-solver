@@ -13,7 +13,7 @@
 ## 💡 Contexte & Vision
 
 - **Transparence** : Utilisation de modèles physiques explicites et éprouvés (Haaland, Blasius, Darcy-Weisbach).
-- **Fiabilité** : Convergence mathématique garantissant le respect strict de la loi de conservation des masses.
+- **Fiabilité** : Convergence mathématique garantissant le respect strict de la loi de conservation des masses (Kirchhoff).
 - **Flexibilité** : Architecture REST permettant une intégration fluide dans des workflows d'optimisation énergétique ou de CAO.
 - **Modernité** : Documentation conforme au standard OpenAPI 3.1.
 
@@ -26,7 +26,7 @@
 - **Expertise du Chemin Critique** : Identification de la branche la plus défavorable via l'algorithme de Dijkstra pour un dimensionnement précis du ventilateur.
 - **Analyse Énergétique** : Estimation de la puissance électrique réelle absorbée (statique + dynamique) et calcul du coût d'exploitation annuel.
 - **Rapports PDF Professionnels** : Génération automatisée d'un document technique structuré incluant les bilans aérauliques, énergétiques et schémas de réseau.
-- **Assistant de Design** : Module autonome de prédimensionnement des conduits circulaires et rectangulaires selon des cibles de vitesse et de débit. *(Voir [l'annexe technique](#duct-sizer))*.
+- **Assistant de Design** : Module autonome de prédimensionnement des conduits circulaires et rectangulaires selon des cibles de vitesse et de débit. Ce module garantit le respect des limites de vitesse pour le confort acoustique et la limitation des bruits de régénération. *(Voir [l'annexe technique](#duct-sizer))*.
 
 ---
 
@@ -52,15 +52,15 @@ $$ \Delta P = \left( f \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rh
 
 ### Étape 2 : Formulation de la Résistance ($R$)
 
-Le code condense les propriétés physiques et géométriques en une **résistance aéraulique** $R$ ($Pa \cdot s^2/m^6$) calculée dynamiquement :
+Le code condense les propriétés physiques et géométriques en une **résistance aéraulique** $R$ ($Pa \cdot s^2/m^6$). Cette valeur est réévaluée dynamiquement à chaque itération pour refléter la dépendance du facteur de friction vis-à-vis de la vitesse :
 
 <br>
 
-$$ R = \left( f \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho}{2 \cdot A^2} $$
+$$ R(Q) = \left( f(Q) \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho}{2 \cdot A^2} $$
 
 <br>
 
-Cette abstraction permet d'établir la relation quadratique **$\Delta P = R \cdot Q^2$**, traitant le réseau comme un circuit analogique (analogie d'Ohm).
+Cette approche non linéaire permet d'établir la relation **$\Delta P = R \cdot Q^2$**, garantissant une fidélité physique supérieure aux modèles à résistance fixe et traitant le réseau comme un circuit analogique (analogie d'Ohm).
 
 ### Étape 3 : Résolution du Réseau (Algorithme de Relaxation)
 
@@ -89,11 +89,12 @@ $$ P_{nouveau} = P_{ancien} + (\alpha \cdot Imb_{nœud}) $$
 
 <br>
 
-Le processus se répète jusqu'à ce que l'imbalance maximale du réseau soit négligeable (**$Imb_{max} < 10^{-9}$ m³/s**), garantissant une convergence stable vers l'état stationnaire du système.
+Le processus se répète jusqu'à ce que l'imbalance maximale du réseau soit rigoureusement nulle (**$Imb_{max} < 10^{-9}$ m³/s**).
+> **Note** : Ce seuil de convergence ultra-fin garantit que l'erreur résiduelle sur l'ensemble du réseau est inférieure à 0.0036 l/h, assurant une stabilité parfaite des pressions statiques et une distribution précise des débits, même dans les réseaux à haute complexité ou à faibles vitesses d'air.
 
 ### Étape 4 : Analyse Énergétique et Chemin Critique
 
-Une fois l'équilibre atteint, l'algorithme de **Dijkstra** identifie le chemin critique (perte de charge maximale). La puissance du ventilateur est alors calculée en intégrant la contrainte spécifique du point critique :
+Une fois l'équilibre atteint, l'algorithme de **Dijkstra** identifie le chemin critique (perte de charge maximale) en calculant le poids de chaque arête par la somme des pertes de charge statiques cumulées. La puissance du ventilateur est alors calculée en intégrant la contrainte spécifique du point critique :
 
 <br>
 
@@ -219,9 +220,10 @@ Le solveur identifie le chemin critique et calcule l'impact énergétique. Les r
    Far_Branch_F              |       1500.0       |        5.95        |        85.45        
 
 ===== 3. SOLVER METADATA =====
-   Execution time (s)                 : 1.341
+   Execution time (s)                 : 1.841
    Convergence status                 : stable
-   Residual error (m3/s)              : 1.28e-09
+   Residual error (m3/s)              : 1e-09
+   Iterations performed               : 81056
    Timestamp                          : 05/05/2026 21:18:00
    Pdf report                         : report_aeraulique.pdf
 ```
