@@ -32,11 +32,12 @@
 
 ## 🔬 Méthodologie de Calcul
 
-L'algorithme traite le réseau suivant une séquence logique, transformant la topologie physique en un système mathématique équilibré :
+L'algorithme transforme la topologie physique du réseau en un système mathématique non linéaire, résolu par itérations successives jusqu'à l'équilibre parfait des flux.
+
 
 ### Étape 1 : Caractérisation physique (Modèle de Friction)
 
-La perte de charge est régie par l'équation de **Darcy-Weisbach** :
+La perte de charge élémentaire est régie par l'équation de **Darcy-Weisbach** :
 
 <br>
 
@@ -44,14 +45,14 @@ $$ \Delta P = \left( f \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rh
 
 <br>
 
-- **$f$** : Facteur de friction dynamique, ajusté à chaque tronçon selon le régime d'écoulement et la rugosité (Blasius pour les parois lisses et Haaland pour les conduits rugueux).
-- **$D_h$** : Diamètre hydraulique, assurant la compatibilité entre gaines circulaires et rectangulaires (m). 
-- **$\Sigma\zeta$** : Somme des coefficients de pertes singulières (coudes, tés, etc.).
-- **$v$** : Vitesse moyenne de flux dans le tronçon (m/s).
+   * **$f$** : Facteur de friction dynamique (Blasius ou Haaland).
+   * **$D_h$** : Diamètre hydraulique ($m$).
+   * **$\Sigma\zeta$** : Somme des coefficients de pertes singulières.
+   * **$\rho$** : Masse volumique de l'air ($\approx 1.204 \text{ kg/m}^3$).
 
-### Étape 2 : Formulation Mathématique
+### Étape 2 : Formulation de la Résistance ($R$)
 
-Le code condense les propriétés physiques en une **résistance aéraulique** $R$ ($Pa \cdot s^2/m^6$) calculée par :
+Le code condense les propriétés physiques et géométriques en une **résistance aéraulique** $R$ ($Pa \cdot s^2/m^6$) calculée dynamiquement :
 
 <br>
 
@@ -59,46 +60,51 @@ $$ R = \left( f \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho}{2 \c
 
 <br>
 
-- Cette abstraction permet d'établir la relation quadratique $\Delta P = R \cdot Q^2$. Le problème est alors traité comme un système de pressions nodales interconnectées par des résistances.
+Cette abstraction permet d'établir la relation quadratique **$\Delta P = R \cdot Q^2$**, traitant le réseau comme un circuit analogique (analogie d'Ohm).
 
-### Étape 3 : Résolution du Réseau (Loi des Nœuds)
+### Étape 3 : Résolution du Réseau (Algorithme de Relaxation)
 
-Le solveur équilibre les pressions en appliquant la **Conservation de la masse** (Loi de Kirchhoff) à chaque nœud du réseau: 
+Le cœur du solveur repose sur un processus itératif qui ajuste les pressions pour satisfaire la **loi de conservation de la masse** (Loi de Kirchhoff) à chaque nœud.
 
-<br>
-
-$$ \Sigma Q_{in} - \Sigma Q_{out} = S $$
-
-<br>
-
-- **$S$ (Terme Source)** : Définit la contrainte de débit au nœud ($m^3/s$).
-    - **$S = 0$** : Nœud de transit (simple répartition).
-    - **$S < 0$** : Bouche d'extraction (consommation locale).
-    - **$S > 0$** : Injection ventilateur (apport global).
-- **Mécanisme de Couplage Pression-Débit** : À chaque itération, le débit $Q$ circulant dans un tronçon est mis à jour selon l'écart de pression actuel entre ses deux nœuds :
+#### A. Calcul de l'Imbalance (Résidu de flux) :
+À chaque itération, le solveur calcule le débit $Q$ dans chaque conduit via le couplage pression-débit, puis évalue l'erreur de flux (**Imbalance**) au nœud :
 
 <br>
 
-$$ Q = \text{sign}(P_{1} - P_{2}) \cdot \sqrt{\frac{|P_{1} - P_{2}|}{R}} $$
+$$ Q = \text{sign}(P_1 - P_2) \cdot \sqrt{\frac{|P_1 - P_2|}{R}} $$
+$$ Imb_{nœud} = S + \Sigma Q_{in} - \Sigma Q_{out} $$
 
 <br>
 
-- **Algorithme de relaxation** : Le système utilise une méthode de descente de gradient pour ajuster les pressions nodales. Si un nœud présente un résidu de débit (imbalance), sa pression est corrigée via un facteur de relaxation $\alpha$. Ce processus itératif se poursuit jusqu'à la convergence vers un état stationnaire, garantissant une précision aéraulique rigoureuse (résidu < $10^{-9}$ m³/s).
 
-### Étape 4 : Bilan Énergétique Global
-
-Une fois l'équilibre atteint, l'algorithme de **Dijkstra** identifie le parcours le plus contraignant pour dimensionner le ventilateur :
-
-<br>
-
-$$ P_{fan} = \frac{\Delta P_{totale} \cdot Q_{total}}{\eta} $$
+   * **$S$** : Contrainte de débit imposée (Injection $>0$, Extraction $<0$, Transit $=0$).    
+   * **$Imb \neq 0$** : le nœud est en déséquilibre et nécessite une correction de pression.
+  
+#### B. Correction des Pressions :
+Pour annuler l'imbalance, le solveur applique une méthode de descente de gradient. La pression de chaque nœud est ajustée proportionnellement à son erreur de flux via un facteur de relaxation $\alpha$ :
 
 <br>
 
-- **$Q_{total}$** : Débit volumique total brassé par le ventilateur ($m^3/s$).
-- **$\Delta P_{totale}$** : Pression statique cumulée sur le chemin critique plus la pression dynamique résiduelle.
-- **$\eta$** : Rendement global du groupe moto-ventilateur (défaut : 0.75).
-- **$P_{fan}$** : Puissance électrique absorbée (W), permettant d'évaluer l'impact énergétique et le coût d'exploitation annuel.
+$$ P_{nouveau} = P_{ancien} + (\alpha \cdot Imb_{nœud}) $$
+
+<br>
+
+Le processus se répète jusqu'à ce que l'imbalance maximale du réseau soit négligeable (**$Imb_{max} < 10^{-9}$ m³/s**), garantissant une convergence stable vers l'état stationnaire du système.
+
+### Étape 4 : Analyse Énergétique et Chemin Critique
+
+Une fois l'équilibre atteint, l'algorithme de **Dijkstra** identifie le chemin critique (perte de charge maximale). La puissance du ventilateur est alors calculée en intégrant la contrainte spécifique du point critique :
+
+<br>
+
+$$ P_{fan} = \frac{(P_{stat\textunderscore cr} + P_{dyn\textunderscore cr}) \cdot Q_{total}}{\eta} $$
+
+<br>
+
+*   **$P_{stat\textunderscore cr}$** : Somme des pertes statiques sur le chemin critique.
+*   **$P_{dyn\textunderscore cr}$** : Énergie cinétique ($\frac{1}{2}\rho v^2$) calculée spécifiquement à la bouche de sortie du chemin critique.
+*   **$\eta$** : Rendement global du système (par défaut $0.75$).
+
 
 ---
 
