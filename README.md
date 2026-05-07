@@ -22,11 +22,11 @@
 ## 🚀 Fonctionnalités Clés
 
 - **Simulation Multi-Régimes** : Calcul des pertes de charge (frottements et singularités) via les modèles de Haaland (rugueux) et Blasius (lisse).
-- **Solveur Nodal Non Linéaire** : Équilibrage automatique des débits par une méthode itérative de descente de gradient (Relaxation). L'algorithme ajuste les pressions nodales pour annuler les résidus de flux.
-- **Expertise du Chemin Critique** : Identification de la branche la plus défavorable via l'algorithme de Dijkstra pour un dimensionnement précis du ventilateur.
+- **Solveur Nodal Non Linéaire** : Équilibrage automatique des débits par une méthode itérative de descente de gradient (Relaxation).
+- **Expertise du Chemin Critique** : Identification de la branche critique via l'algorithme de Dijkstra pour le dimensionnement du ventilateur.
 - **Analyse Énergétique** : Estimation de la puissance électrique réelle absorbée (statique + dynamique) et calcul du coût d'exploitation annuel.
 - **Rapports PDF Professionnels** : Génération automatisée d'un document technique structuré incluant les bilans aérauliques, énergétiques et schémas de réseau.
-- **Assistant de Design** : Module autonome de prédimensionnement des conduits circulaires et rectangulaires selon des cibles de vitesse et de débit. Ce module garantit le respect des limites de vitesse pour le confort acoustique et la limitation des bruits de régénération. *(Voir [l'annexe technique](#duct-sizer))*.
+- **Assistant de Design** : Module autonome de prédimensionnement des conduits circulaires et rectangulaires selon des cibles de vitesse et de débit *(Voir [l'annexe technique](#duct-sizer))*.
 
 ---
 
@@ -45,43 +45,51 @@ $$ \Delta P = \left( f \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rh
 
 <br>
 
-   * **$f$** : Facteur de friction dynamique (Blasius ou Haaland).
-   * **$D_h$** : Diamètre hydraulique ($m$).
-   * **$\Sigma\zeta$** : Somme des coefficients de pertes singulières.
-   * **$\rho$** : Masse volumique de l'air ($\approx 1.204 \text{ kg/m}^3$).
+  > * **$f$** : Facteur de friction dynamique (Blasius ou Haaland).
+  > * **$L$** : Longueur du tronçon ($m$).
+  > * **$D_h$** : Diamètre hydraulique ($m$).
+  > * **$\Sigma\zeta$** : Somme des coefficients de pertes singulières (coudes, tés, registres).
+  > * **$\rho$** : Masse volumique de l'air ($\approx 1.204 \text{ kg/m}^3$ à $\text20°C$).
+  > * **$v$** : Vitesse moyenne de l'air dans le conduit ($m/s$).
 
 ### Étape 2 : Formulation de la Résistance ($R$)
 
-Le code condense les propriétés physiques et géométriques en une **résistance aéraulique** $R$ ($Pa \cdot s^2/m^6$). Cette valeur est réévaluée dynamiquement à chaque itération pour refléter la dépendance du facteur de friction vis-à-vis de la vitesse :
+Le code condense les propriétés physiques et géométriques en une **résistance aéraulique** $R$ ($Pa \cdot s^2/m^6$). Cette valeur est réévaluée dynamiquement à chaque itération pour refléter la dépendance du facteur de friction vis-à-vis du **nombre de Reynolds** ($Re$) :
 
 <br>
 
-$$ R(Q) = \left( f(Q) \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho}{2 \cdot A^2} $$
+$$ R = \left( f(Re) \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho}{2 \cdot A^2} $$
 
 <br>
 
 Cette approche non linéaire permet d'établir la relation **$\Delta P = R \cdot Q^2$**, garantissant une fidélité physique supérieure aux modèles à résistance fixe et traitant le réseau comme un circuit analogique (analogie d'Ohm).
 
+  > * **$Q$** : Débit volumique circulant dans le conduit ($m^3/s$).
+  > * **$A$** : Aire de la section transversale du conduit ($m^2$).
+
 ### Étape 3 : Résolution du Réseau (Algorithme de Relaxation)
 
 Le cœur du solveur repose sur un processus itératif qui ajuste les pressions pour satisfaire la **loi de conservation de la masse** (Loi de Kirchhoff) à chaque nœud.
 
-#### A. Calcul de l'Imbalance (Résidu de flux) :
-À chaque itération, le solveur calcule le débit $Q$ dans chaque conduit via le couplage pression-débit, puis évalue l'erreur de flux (**Imbalance**) au nœud :
+#### A. Initialisation : 
+Le processus démarre l'initialisation du **vecteur de pression** à zéro ($P = 0$), définissant l'état initial de chaque nœud du réseau. Cette approche de "Cold Start" démontre la robustesse du solveur face aux fortes non-linéarités.
+
+#### B. Évaluation de l'Imbalance :
+À chaque itération, le débit $Q$ dans chaque conduit est recalculé via le différentiel de pression, puis l'erreur de flux (**Imbalance**) est quantifiée à chaque nœud :
 
 <br>
 
-$$ Q = \text{sign}(P_1 - P_2) \cdot \sqrt{\frac{|P_1 - P_2|}{R}} $$
-$$ Imb_{nœud} = S + \Sigma Q_{in} - \Sigma Q_{out} $$
+$$ Q = \text{sign}(\Delta P) \cdot \sqrt{\frac{|\Delta P|}{R}} $$
+$$ Imb_{nœud} = S + \Sigma Q_{entrants} - \Sigma Q_{sortants} $$
 
 <br>
 
-
-   * **$S$** : Contrainte de débit imposée (Injection $>0$, Extraction $<0$, Transit $=0$).    
-   * **$Imb \neq 0$** : le nœud est en déséquilibre et nécessite une correction de pression.
+  > * **$\Delta P$** : Différence de pression entre les nœuds adjacents ($P_{amont} - P_{aval}$).
+  > * **$S$** : Contrainte de débit imposée (Injection $>0$, Extraction $<0$, Transit $=0$).    
+  > * **$Imb$** : Résidu de flux. Si **$Imb \neq 0$**, le nœud est en déséquilibre et sa pression doit être ajustée.
   
-#### B. Correction des Pressions :
-Pour annuler l'imbalance, le solveur applique une méthode de descente de gradient. La pression de chaque nœud est ajustée proportionnellement à son erreur de flux via un facteur de relaxation $\alpha$ :
+#### C. Correction des Pressions :
+Pour annuler l'imbalance, la pression de chaque nœud est ajustée de manière itérative via un facteur de relaxation $\alpha$ :
 
 <br>
 
@@ -89,23 +97,24 @@ $$ P_{nouveau} = P_{ancien} + (\alpha \cdot Imb_{nœud}) $$
 
 <br>
 
-Le processus se répète jusqu'à ce que l'imbalance maximale du réseau soit rigoureusement nulle (**$Imb_{max} < 10^{-9}$ m³/s**).
-> **Note** : Ce seuil de convergence ultra-fin garantit que l'erreur résiduelle sur l'ensemble du réseau est inférieure à 0.0036 l/h, assurant une stabilité parfaite des pressions statiques et une distribution précise des débits, même dans les réseaux à haute complexité ou à faibles vitesses d'air.
+Le processus se répète jusqu'à ce que l'imbalance maximale du réseau soit rigoureusement nulle ($Imb_{max} < 10^{-9}$ m³/s).
+> **Note d'ingénierie** : Ce seuil de convergence ultra-fin garantit que l'erreur résiduelle sur l'ensemble du réseau est inférieure à **0.0036 l/h**. Une telle précision assure une stabilité parfaite des pressions statiques et une distribution rigoureuse des débits, même dans les réseaux à haute complexité ou opérant à de très faibles vitesses d'air.
 
 ### Étape 4 : Analyse Énergétique et Chemin Critique
 
-Une fois l'équilibre atteint, l'algorithme de **Dijkstra** identifie le chemin critique (perte de charge maximale) en calculant le poids de chaque arête par la somme des pertes de charge statiques cumulées. La puissance du ventilateur est alors calculée en intégrant la contrainte spécifique du point critique :
+Une fois l'équilibre atteint, l'algorithme de **Dijkstra** identifie le **point critique** en calculant la **pression totale** (Statique + Dynamique) de chaque terminal $i$ . Le **maximum** de ces valeurs dicte la puissance nécessaire pour garantir les débits sur tout le réseau :
 
 <br>
 
-$$ P_{fan} = \frac{(P_{stat\textunderscore cr} + P_{dyn\textunderscore cr}) \cdot Q_{total}}{\eta} $$
+$$ \dot{W}_{fan} = \frac{ \max(P_{stat\textunderscore i} + P_{dyn\textunderscore i}) \cdot Q_{total}}{\eta} $$
 
 <br>
 
-*   **$P_{stat\textunderscore cr}$** : Somme des pertes statiques sur le chemin critique.
-*   **$P_{dyn\textunderscore cr}$** : Énergie cinétique ($\frac{1}{2}\rho v^2$) calculée spécifiquement à la bouche de sortie du chemin critique.
-*   **$\eta$** : Rendement global du système (par défaut $0.75$).
-
+  > * **$\dot{W}_{fan}$** : Puissance aéraulique requise (Watts).
+  > * **$P_{stat\textunderscore i}$** : Pertes statiques cumulées jusqu'au terminal $i$ ($Pa$).
+  > * **$P_{dyn\textunderscore i}$** : Pression dynamique en sortie du terminal $i$ ($Pa$).
+  > * **$Q_{total}$** : Débit total du système ($m^3/s$).
+  > * **$\eta$** : Rendement global du groupe moto-ventilateur (ex : 0.75).
 
 ---
 
@@ -311,7 +320,7 @@ Ce projet est sous licence **MIT**. Voir le fichier [LICENSE](LICENSE) pour plus
 <a name="duct-sizer"></a>
 ## 🧮 Annexes : Assistant de Prédimensionnement
 
-L'endpoint `/suggest` fonctionne comme un calculateur autonome. Il permet de déterminer les dimensions optimales de gaines (circulaires ou rectangulaires) à partir du **débit** et d'une **vitesse cible**, garantissant ainsi la maîtrise du **confort acoustique** et des **pertes de charge**.
+L'endpoint `/suggest` fonctionne comme un calculateur autonome. Il permet de déterminer les dimensions optimales de gaines (circulaires ou rectangulaires) à partir du **débit** et d'une **vitesse cible**, garantissant ainsi la maîtrise du **confort acoustique** et la limitation des **bruits de régénération**.
 
 ### 1. Conduit circulaire 
 
