@@ -170,9 +170,9 @@ Le moteur gère automatiquement le diamètre hydraulique et le régime de fricti
 [
   {"name": "Main_Section_AB", "n1": "A", "n2": "B", "L": 5, "D": 0.6, "coeffs": [0.3], "is_smooth": false},
   {"name": "Connection_BC", "n1": "B", "n2": "C", "L": 8, "D": 0.5, "coeffs": [0.3], "is_smooth": false},
-  {"name": "Near_Branch_D", "n1": "B", "n2": "D", "L": 2, "D": 0.3, "coeffs": [1.5], "is_smooth": true},
-  {"name": "Middle_Branch_E", "n1": "C", "n2": "E", "L": 10, "W": 0.4, "H": 0.25, "coeffs": [1.5], "is_smooth": false},
-  {"name": "Far_Branch_F", "n1": "C", "n2": "F", "L": 25, "W": 0.35, "H": 0.2, "coeffs": [2.0], "is_smooth": false}
+  {"name": "Near_Branch_BD", "n1": "B", "n2": "D", "L": 2, "D": 0.3, "coeffs": [1.5], "is_smooth": true},
+  {"name": "Middle_Branch_CE", "n1": "C", "n2": "E", "L": 10, "W": 0.4, "H": 0.25, "coeffs": [1.5], "is_smooth": false},
+  {"name": "Far_Branch_CF", "n1": "C", "n2": "F", "L": 25, "W": 0.35, "H": 0.2, "coeffs": [2.0], "is_smooth": false}
 ]
 ```
 
