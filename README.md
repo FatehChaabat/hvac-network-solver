@@ -181,82 +181,165 @@ Purge le moteur pour garantir qu'aucun résidu de calcul précédent ne vienne f
 ### 2. Informations Projet (`POST /project/info`)
 Exemple : Projet = Batiment_R+4, Client = Promoteur_X, Site = Lyon_69
 
-### 2. Définition des Nœuds (`POST /network/nodes`)
-Définition des points de soufflage (valeurs positives), d'extraction (valeurs négatives) et de transit (valeurs nulles).
+### 3. Import Global (`POST /network/import-project`)
+Chargement de l'ensemble de la topologie en une seule requête — nœuds, conduits et ventilateurs :
+
 ```json
-[
-  {"name": "A", "supply": 4000},
-  {"name": "B", "supply": 0},
-  {"name": "C", "supply": 0},
-  {"name": "D", "supply": -1000},
-  {"name": "E", "supply": -1500},
-  {"name": "F", "supply": -1500}
-]
+{
+  "nodes": [
+    { "name": "FAN_01", "supply": 2200.0 },
+    { "name": "JN_01", "supply": 0.0 },
+    { "name": "JN_A", "supply": 0.0 },
+    { "name": "OF_01", "supply": -550.0 },
+    { "name": "OF_02", "supply": -500.0 },
+    { "name": "JN_B", "supply": 0.0 },
+    { "name": "OF_03", "supply": -600.0 },
+    { "name": "OF_04", "supply": -550.0 }
+  ],
+  "edges": [
+    { "name": "main_trunk", "n1": "FAN_01", "n2": "JN_01", "L": 2.0, "D": 0.45, "epsilon": 0.15, "coeffs": [0, ""], "is_branch": false },
+    { "name": "to_junction_A", "n1": "JN_01", "n2": "JN_A", "L": 3.0, "D": 0.40, "epsilon": 0.15, "coeffs": [0, ""], "slope_degrees": 15, "is_branch": false },
+    { "name": "office_1", "n1": "JN_A", "n2": "OF_01", "L": 2.0, "W": 0.2, "H": 0.17, "epsilon": 0.02, "coeffs": [0, "grille_soufflage_ailettes"], "is_branch": true },
+    { "name": "office_2", "n1": "JN_A", "n2": "OF_02", "L": 2.0, "W": 0.2, "H": 0.16, "epsilon": 0.02, "coeffs": [0, "diffuseur_plafonnier_4_voies"], "is_branch": true },
+    { "name": "transit_to_B", "n1": "JN_A", "n2": "JN_B", "L": 3.0, "D": 0.30, "epsilon": 0.15, "coeffs": [0, ""], "is_branch": false },
+    { "name": "office_3", "n1": "JN_B", "n2": "OF_03", "L": 2.0, "W": 0.2, "H": 0.18, "epsilon": 0.02, "coeffs": [0, "bouche_extraction_standard"], "is_branch": true },
+    { "name": "office_4", "n1": "JN_B", "n2": "OF_04", "L": 2.0, "W": 0.2, "H": 0.17, "epsilon": 0.02, "coeffs": [0, "diffuseur_rotatif"], "is_branch": true }
+  ],
+  "fans": [
+    { "name": "Main_Fan", "node_name": "FAN_01", "rendement": 0.75, "description": "Fresh air supply" }
+  ]
+}
 ```
 
-### 3. Définition des Conduits (`POST /network/ducts`)
-Le moteur gère automatiquement le diamètre hydraulique et le régime de friction via `is_smooth`.
-```json
-[
-  {"name": "Main_Section_AB", "n1": "A", "n2": "B", "L": 5, "D": 0.6, "coeffs": [0.3], "is_smooth": false},
-  {"name": "Connection_BC", "n1": "B", "n2": "C", "L": 8, "D": 0.5, "coeffs": [0.3], "is_smooth": false},
-  {"name": "Near_Branch_BD", "n1": "B", "n2": "D", "L": 2, "D": 0.3, "coeffs": [1.5], "is_smooth": true},
-  {"name": "Middle_Branch_CE", "n1": "C", "n2": "E", "L": 10, "W": 0.4, "H": 0.25, "coeffs": [1.5], "is_smooth": false},
-  {"name": "Far_Branch_CF", "n1": "C", "n2": "F", "L": 25, "W": 0.35, "H": 0.2, "coeffs": [2.0], "is_smooth": false}
-]
-```
+> **Convention** : Les nœuds ventilateurs doivent impérativement porter le préfixe `fan_` (ex: `fan_1`, `fan_principal`) — détection automatique par le moteur.
 
-### 4. Résolution & Analyse (`GET /network/solve`)
-Le solveur identifie le chemin critique et calcule l'impact énergétique. Les résultats sont exportés en JSON pour la console et en PDF pour le rapport d'expertise.
+### 4. Calcul (`POST /network/calculate`)
+Le solveur exécute le pipeline complet de dimensionnement aéraulique et génère trois types de livrables :
+
+ - **Rapport de calcul** : Analyse synthétisée disponible instantanément dans la console et éditée en PDF (avec tableaux structurés pour une exploitation professionnelle).
+
+ - **Visualisation graphique** : Schéma du réseau illustrant la topologie et l'état des composants.
+
+ - **Fichier de données (DATA)** : Export structuré (JSON) regroupant l'intégralité des paramètres d'entrée et des résultats de sortie.
+
+Le rapport console synthétise les données clés comme suit :
+
 ```text
+==============================================================================================================
+
 ===== 1. NETWORK SUMMARY =====
-   Total flow (m3/h)                  : 4000.0
-   Critical node                      : F
-   Static pressure loss (Pa)          : 96.04
-   Dynamic pressure at exit (Pa)      : 21.33
-   Total pressure fan (Pa)            : 117.37
-   Total fan power (W)                : 173.88
-   Efficiency used                    : 0.75
-   Estimated annual cost (€)          : 108.68
 
-===== 2. DUCT DETAILS =====
-   Duct name                 | Air flow (m3/h)    | Velocity (m/s)     | Pressure loss (Pa)  
-   ------------------------------------------------------------------------------------------
-   Main_Section_AB           |       4000.0       |        3.93        |         4.16        
-   Connection_BC             |       3000.0       |        4.24        |         6.43        
-   Near_Branch_D             |       1000.0       |        3.93        |        15.12        
-   Middle_Branch_E           |       1500.0       |        4.17        |        22.63        
-   Far_Branch_F              |       1500.0       |        5.95        |        85.45        
+  [ AIR PROPERTIES ]
+      Temperature used (°C)                        : 20.00
+      Altitude (m)                                 : 170.00
+      Density (kg/m³)                              : 1.18
+      Dynamic viscosity (Pa·s)                     : 1.813e-05
 
-===== 3. SOLVER METADATA =====
-   Execution time (s)                 : 1.841
+  [ SYSTEM PERFORMANCE METRICS ]
+      Ventilation type                             : Supply
+      Design volumetric flow rate (m³/h)           : 2200.00
+
+      [ FANS ]
+
+          [ FAN 01 ]
+              Fan label                                    : Main_Fan
+              Description                                  : Fresh air supply
+              Nominal efficiency (%)                       : 75%
+              Fan flow (m³/h)                              : 2200.00
+              Critical node                                : of_04
+              Cumulative static (Pa)                       : 59.84
+              Exit dynamic (Pa)                            : 19.57
+              Total pressure (Pa)                          : 79.40
+              Shaft input power (W)                        : 64.70
+
+      [ OPERATING COST PROJECTIONS ]
+          Total shaft input power (W)                  : 64.70
+
+          [ SERVICE PROFILE ASSUMPTIONS ]
+              Daily operating cycle h                      : 10.00
+              Annual operating cycle days                  : 250
+          Annual energy usage (kWh)                    : 161.75
+          Unit energy cost euro (kWh)                  : 0.25
+          Estimated annual opex ()                    : 40.44
+
+--------------------------------------------------------------------------------------------------------------
+
+===== 2. TERMINAL BALANCING ANALYSIS =====
+   Terminal ID          | Stat (Pa)    | Dyn (Pa)     | Total (Pa)   | Balance (Pa)    | Extra ζ     
+   ---------------------------------------------------------------------------------------------
+   of_01                |    44.84     |    19.57     |    64.41     |      14.99      |    0.766    
+   of_02                |    54.44     |    18.47     |    72.92     |      6.48       |    0.351    
+   of_03                |    39.03     |    20.62     |    59.64     |      19.76      |    0.958    
+   of_04                |    59.84     |    19.57     |    79.40     |      0.00       |    0.000    
+
+--------------------------------------------------------------------------------------------------------------
+
+===== 3. DUCT DETAILS (PERFORMANCE) =====
+   Duct Name            | Flow (m³/h)      | Vel. (m/s)     | Lin. Loss (Pa) | Lin. Loss/m (Pa/m)
+   ----------------------------------------------------------------------------------------------
+   main_trunk           |     2200.00      |      3.84      |     0.75     |       0.373       
+   to_junction_A        |     2200.00      |      4.86      |     2.01     |       0.669       
+   office_1             |      550.00      |      4.49      |     2.72     |       1.359       
+   office_2             |      500.00      |      4.34      |     2.66     |       1.330       
+   transit_to_B         |     1150.00      |      4.52      |     2.49     |       0.830       
+   office_3             |      600.00      |      4.63      |     2.76     |       1.381       
+   office_4             |      550.00      |      4.49      |     2.72     |       1.359       
+
+--------------------------------------------------------------------------------------------------------------
+
+===== 4. HYDRAULIC AUDIT DETAILS =====
+   Duct Name            | Reynolds     | Regime         | Fric. Lambda     | Sing. Loss (Pa)  | Zeta Tot  
+   -------------------------------------------------------------------------------------------------------
+   main_trunk           |    112523    | Turbulent      |      0.0193      |       0.00       |   0.000   
+   to_junction_A        |    126588    | Turbulent      |      0.0192      |       0.43       |   0.031   
+   office_1             |    53741     | Turbulent      |      0.0210      |      38.94       |   3.269   
+   office_2             |    50213     | Turbulent      |      0.0213      |      48.60       |   4.373   
+   transit_to_B         |    88228     | Turbulent      |      0.0207      |       1.53       |   0.127   
+   office_3             |    57084     | Turbulent      |      0.0207      |      29.07       |   2.298   
+   office_4             |    53741     | Turbulent      |      0.0210      |      49.92       |   4.190   
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+===== 5. ACOUSTIC NOISE RISK ASSESSMENT =====
+   Duct Name            | Topology Type      | Velocity (m/s) | Noise Lw dB(A)   | Acoustic Status
+   -----------------------------------------------------------------------------------------------
+   main_trunk           | Main Trunk         |      3.84      |      31.20       | OPTIMAL        
+   to_junction_A        | Intermediary       |      4.86      |      35.30       | OPTIMAL        
+   office_1             | Terminal Runout    |      4.49      |      27.90       | OPTIMAL        
+   office_2             | Terminal Runout    |      4.34      |      26.90       | OPTIMAL        
+   transit_to_B         | Intermediary       |      4.52      |      31.20       | OPTIMAL        
+   office_3             | Terminal Runout    |      4.63      |      28.80       | OPTIMAL        
+   office_4             | Terminal Runout    |      4.49      |      27.90       | OPTIMAL        
+
+--------------------------------------------------------------------------------------------------------------
+
+
+===== 6. ACOUSTIC SIZING RECOMMENDATIONS =====
+   Duct Name            | Status       | Vmax (m/s)     | Circ. Diam (mm)  | Rect. WxH (mm)    
+   --------------------------------------------------------------------------------------------
+                                   No critical ducts identified                                
+
+--------------------------------------------------------------------------------------------------------------
+
+
+===== 7. SOLVER METADATA =====
+   Execution time (s)                 : 0.119
    Convergence status                 : stable
-   Residual error (m3/s)              : 1e-09
-   Iterations performed               : 81056
-   Timestamp                          : 05/05/2026 21:18:00
-   Pdf report                         : report_aeraulique.pdf
+   Residual error (m³/s)              : 8.2e-10
+   Tolerance targeted (m³/s)          : 1e-09
+   Iterations performed               : 477
+   Max iterations allowed             : 1000000
+   Timestamp                          : 26/05/2026 19:41:13
+
+==============================================================================================================
 ```
-👉 **Intelligence métier intégrée :**
 
-- **Équilibrage précis** : Le moteur vérifie la conservation des masses à chaque nœud pour garantir des débits réels.
-- **Chemin critique** : Il identifie automatiquement le point le plus défavorable (ex: nœud F) pour bien choisir le ventilateur.
-- **Bilan financier** : Il calcule le coût électrique annuel pour évaluer la rentabilité de l'installation.
-
-### 5. Visualisation (`GET /network/visualize`)
-Génération du schéma technique annoté incluant les débits, les vitesses et le codage couleur par type de section.
+Le schéma technique généré est annoté, illustrant les débits, les vitesses et l'état des sections par un codage couleur dynamique facilitant l'interprétation immédiate des résultats :
 
 <p align="center">
   <img src="docs/temp_network_schema_demo.png" width="850" alt="Schéma technique du réseau aéraulique généré par l'API">
 </p>
 
-👉 **Guide de lecture :**
-* **Bleu** : Conduits à section circulaire.
-* **Rouge** : Conduits à section rectangulaire.
-* **Vert / Orange** : Identification automatique des sources et des bouches d'extraction.
-* **Épaisseur des lignes** : Proportionnelle au débit circulant dans le tronçon.
-
-### 6. Export (`GET /network/download-report`): 
-Téléchargement du rapport d'expertise PDF final, incluant les bilans techniques et le schéma du réseau, prêt pour une transmission client.
 
 ---
 
