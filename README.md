@@ -1,126 +1,145 @@
 # HVAC Network Solver API
 
->Cette **API FastAPI** est un moteur de calcul spécialisé dans **l'équilibrage aéraulique** et le **dimensionnement de réseaux de ventilation**. Elle résout des systèmes complexes via une approche nodale, aide au choix des composants et identifie automatiquement les contraintes critiques du réseau.
+> **Moteur de calcul aéraulique haute performance** dédié au dimensionnement et à l'équilibrage dynamique de réseaux CVC complexes. Développé avec une architecture API-First (FastAPI), il automatise la résolution physique non linéaire par une approche nodale rigoureuse pour garantir une précision industrielle et une efficience énergétique optimale.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=flat&logo=fastapi&logoColor=white)
 ![OpenAPI](https://img.shields.io/badge/OpenAPI-3.1-8BE9FD?style=flat&logo=openapi-initiative)
-![License](https://img.shields.io/badge/license-MIT-lightgrey)
 ![Status](https://img.shields.io/badge/Status-Stable-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
+
+
 
 ---
 
-## 💡 Contexte & Vision
+## 💡 Valeur Ajoutée pour l'Ingénierie
 
-- **Transparence** : Utilisation de modèles physiques explicites et éprouvés (Haaland, Blasius, Darcy-Weisbach).
-- **Fiabilité** : Convergence mathématique garantissant le respect strict de la loi de conservation des masses (Kirchhoff).
-- **Flexibilité** : Architecture REST permettant une intégration fluide dans des workflows d'optimisation énergétique ou de CAO.
-- **Modernité** : Documentation conforme au standard OpenAPI 3.1.
+- **Rigueur physique** : Modèles explicites et validés (Darcy-Weisbach, Colebrook-White, Sutherland, Idelchik, Borda-Carnot, Bernoulli généralisé).
+- **Fiabilité** : Solveur à haute précision (résidu $< 10^{-9}$ m³/s) respectant strictement la conservation des masses (Loi de Kirchhoff).
+- **Universalité** : Supporte nativement les topologies mono et multi-ventilateurs, en soufflage et en extraction, avec détection automatique du mode opératoire.
+- **Automatisation** : Du dimensionnement des conduits à la génération de rapports techniques complets au format PDF.
+- **Flexibilité** : API REST scalable, prête pour l'intégration dans des workflows BIM, jumeaux numériques ou logiciels de CAO.
 
 ---
 
 ## 🚀 Fonctionnalités Clés
 
-- **Simulation Multi-Régimes** : Calcul des pertes de charge (frottements et singularités) via les modèles de Haaland (rugueux) et Blasius (lisse).
-- **Solveur Nodal Non Linéaire** : Équilibrage automatique des débits par une méthode itérative de descente de gradient (Relaxation).
-- **Expertise du Chemin Critique** : Identification de la branche critique via l'algorithme de Dijkstra pour le dimensionnement du ventilateur.
-- **Analyse Énergétique** : Estimation de la puissance électrique réelle absorbée (statique + dynamique) et calcul du coût d'exploitation annuel.
-- **Rapports PDF Professionnels** : Génération automatisée d'un document technique structuré incluant les bilans aérauliques, énergétiques et schémas de réseau.
+
+- **Simulation Multi-Régimes** : Calcul des pertes de charge (frottements et singularités) via la résolution exacte de **Colebrook-White** par bisection, adaptée à chaque conduit selon sa rugosité et son régime d'écoulement.
+- **Solveur Nodal Non Linéaire** : Équilibrage automatique des débits par méthode itérative de relaxation nodale avec facteur adaptatif anti-oscillation.
+- **Singularités Dynamiques Avancées** : Calcul automatique des pertes de charge des tés (Idelchik) avec détection locale du type de jonction, et des transitions convergent/divergent (Idelchik, Borda-Carnot pondéré) affectées sur la section de référence correcte.
+- **Dimensionnement Multi-Ventilateurs** : Circuit critique, pression totale et puissance calculés individuellement par ventilateur (rendement propre), avec table d'équilibrage hydraulique par terminal.
+- **Analyse Énergétique** : Estimation de la puissance électrique réelle absorbée (Bernoulli généralisé, méthodes B/C Almeco/AMCA) et calcul du coût d'exploitation annuel (OPEX).
+- **Rapports PDF Professionnels** : Génération automatisée d'un document technique structuré incluant bilans aérauliques, audit hydraulique, analyse acoustique et recommandations de redimensionnement.
 - **Assistant de Design** : Module autonome de prédimensionnement des conduits circulaires et rectangulaires selon des cibles de vitesse et de débit *(Voir [l'annexe technique](#duct-sizer))*.
 
 ---
 
-## 🔬 Méthodologie de Calcul
+## 🔬 Méthodologie de Calcul & Ingénierie Physique
 
-L'algorithme transforme la topologie physique du réseau en un système mathématique non linéaire, résolu par itérations successives jusqu'à l'équilibre parfait des flux.
+Le moteur transforme la topologie physique du réseau en un système d'équations non linéaires, résolu par itérations successives jusqu'à l'équilibre parfait des flux.
+
+### 1. Physique des Fluides & Propriétés Dynamiques
+
+Le solveur adapte ses calculs aux conditions réelles de l'installation :
+
+**Propriétés de l'air :** Calcul dynamique de la masse volumique ($\rho$) via la **loi des gaz parfaits** couplée au modèle atmosphérique standard ISA, et de la viscosité dynamique ($\mu$) via l'équation de **Sutherland** — en fonction de la température ($T$) et de l'altitude du site ($z$).
+
+$$\rho = \frac{P_{atm}(z)}{R_{air} \cdot T} \qquad et \qquad \mu = \mu_0 \left(\frac{T}{T_0}\right)^{3/2} \frac{T_0 + S}{T + S}$$
+
+> * $$P_{atm}(z) = 101325.0 \cdot (1.0 - 2.25577 \times 10^{-5} \cdot \text z)^{5.25588}$$.
+> * $R_{air} = 287.05 \ \text{J/(kg}\cdot\text{K)}$ &nbsp; | &nbsp; $\mu_0 = 1.716 \times 10^{-5} \ \text{Pa}\cdot\text{s}$ &nbsp; | &nbsp; $S = 110.4 \ \text{K}$ &nbsp; | &nbsp; $T_0 = 273.15 \ \text{K}$ &nbsp; | &nbsp; $T = (T_{temp\textunderscore c} + T_0) \ \text{K}$.
+
+**Friction de haute précision :** Utilisation de **Darcy-Weisbach** couplée à la résolution exacte de **Colebrook-White** par méthode de **bisection** (convergence garantie, précision $< 10^{-10}$) pour le régime turbulent, et de **Poiseuille** ($\lambda = 64/Re$) pour le régime laminaire :
+
+$$\Delta P = \left( \lambda \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho \cdot v^2}{2} \qquad et \qquad \frac{1}{\sqrt{\lambda}} = -2\log_{10}\left(\frac{\varepsilon/D_h}{3.7} + \frac{2.51}{Re\sqrt{\lambda}}\right)$$
 
 
-### Étape 1 : Caractérisation physique (Modèle de Friction)
+### 2. Résistance Aéraulique ($R$)
 
-La perte de charge élémentaire est régie par l'équation de **Darcy-Weisbach** :
+Le moteur condense les propriétés physiques et géométriques en une **résistance aéraulique** $R$ (Pa·s²/m⁶), réévaluée dynamiquement à chaque itération :
 
-<br>
+$$R = \left( \lambda \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho}{2 \cdot A^2} \qquad \Rightarrow \qquad \Delta P = R \cdot Q^2$$
 
-$$ \Delta P = \left( f \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho \cdot v^2}{2} $$
+Cette analogie avec les circuits électriques (loi d'Ohm non linéaire) garantit une fidélité physique supérieure aux modèles à résistance fixe.
 
-<br>
 
-  > * **$f$** : Facteur de friction dynamique (Blasius ou Haaland).
-  > * **$L$** : Longueur du tronçon ($m$).
-  > * **$D_h$** : Diamètre hydraulique ($m$).
-  > * **$\Sigma\zeta$** : Somme des coefficients de pertes singulières (coudes, tés, registres).
-  > * **$\rho$** : Masse volumique de l'air ($\approx 1.204 \text{ kg/m}^3$ à $\text20°C$).
-  > * **$v$** : Vitesse moyenne de l'air dans le conduit ($m/s$).
+### 3. Formulation par Conductance ($C$)
 
-### Étape 2 : Formulation de la Résistance ($R$)
+Pour optimiser la stabilité numérique du solveur, la résistance $R_d$ est convertie en **conductance aéraulique** $C_d = 1 / \sqrt{R_d}$, définissant la capacité du conduit $d$ à laisser passer le flux pour une différence de pression donnée :
 
-Le code condense les propriétés physiques et géométriques en une **résistance aéraulique** $R$ ($Pa \cdot s^2/m^6$). Cette valeur est réévaluée dynamiquement à chaque itération pour refléter la dépendance du facteur de friction vis-à-vis du **nombre de Reynolds** ($Re$) :
-
-<br>
-
-$$ R = \left( f(Re) \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho}{2 \cdot A^2} $$
-
-<br>
-
-Cette approche non linéaire permet d'établir la relation **$\Delta P = R \cdot Q^2$**, garantissant une fidélité physique supérieure aux modèles à résistance fixe et traitant le réseau comme un circuit analogique (analogie d'Ohm).
-
-  > * **$Q$** : Débit volumique circulant dans le conduit ($m^3/s$).
-  > * **$A$** : Aire de la section transversale du conduit ($m^2$).
-
-### Étape 3 : Résolution du Réseau (Algorithme de Relaxation)
-
-Le cœur du solveur repose sur un processus itératif qui ajuste les pressions pour satisfaire la **loi de conservation de la masse** (Loi de Kirchhoff) à chaque nœud.
-
-#### A. Initialisation : 
-Le processus démarre l'initialisation du **vecteur de pression** à zéro ($P = 0$), définissant l'état initial de chaque nœud du réseau. Cette approche de "Cold Start" démontre la robustesse du solveur face aux fortes non-linéarités.
-
-#### B. Évaluation de l'Imbalance :
-À chaque itération, le débit $Q$ dans chaque conduit est recalculé via le différentiel de pression, puis l'erreur de flux (**Imbalance**) est quantifiée à chaque nœud :
+$$Q_d = \text{sign}(\Delta P_d) \cdot C_d \cdot \sqrt{|\Delta P_d|} \qquad \text{et} \qquad Imb_n = S_n + \sum Q_{d, \text{entrants}} - \sum Q_{d, \text{sortants}}$$
 
 <br>
 
-$$ Q = \text{sign}(\Delta P) \cdot \sqrt{\frac{|\Delta P|}{R}} $$
-$$ Imb_{nœud} = S + \Sigma Q_{entrants} - \Sigma Q_{sortants} $$
+  > * **$\Delta P_d$** : Différence de pression du conduit $d$ ($P_{amont} - P_{aval}$).
+  > * **$S_n$** : Contrainte de débit imposée au nœud $n$ (Injection $>0$, Extraction $<0$, Transit $=0$).
+  > * **$Imb_n$** : Résidu de flux. Si **$Imb_n \neq 0$**, le nœud $n$ est en déséquilibre et sa pression doit être ajustée. 
 
-<br>
+La correction de pression est calculée par ajustement itératif (linéarisation de Newton-Raphson) via la conductance totale des conduits $d$ connectés au nœud $n$ pour satisfaire la **loi de conservation de la masse** (Kirchhoff) :
 
-  > * **$\Delta P$** : Différence de pression entre les nœuds adjacents ($P_{amont} - P_{aval}$).
-  > * **$S$** : Contrainte de débit imposée (Injection $>0$, Extraction $<0$, Transit $=0$).    
-  > * **$Imb$** : Résidu de flux. Si **$Imb \neq 0$**, le nœud est en déséquilibre et sa pression doit être ajustée.
-  
-#### C. Correction des Pressions :
-Pour annuler l'imbalance, la pression de chaque nœud est ajustée de manière itérative via un facteur de relaxation $\alpha$ :
+$$P_{n, \text{nouveau}} = P_{n, \text{ancien}} + w \cdot \frac{Imb_n}{\displaystyle\sum_{d \in n} (0.5 \cdot C_d / \sqrt{|\Delta P_d|})}$$
 
-<br>
+> * **$w$ :** Facteur de relaxation adaptatif ($0.02 \le w \le 0.3$).
+> * **Convergence :** Le processus itère jusqu'à ce que $Imb_{max} < 10^{-9} \ \text{m}^3/\text{s}$ (soit $0.0036 \ \text{l/h}$).
 
-$$ P_{nouveau} = P_{ancien} + (\alpha \cdot Imb_{nœud}) $$
+### 4. Solveur Nodal : Stratégie de Convergence en Deux Phases
 
-<br>
+Pour garantir robustesse et précision sur tous types de topologies, le solveur adopte une stratégie en deux phases distinctes :
 
-Le processus se répète jusqu'à ce que l'imbalance maximale du réseau soit rigoureusement nulle ($Imb_{max} < 10^{-9}$ m³/s).
-> **Note d'ingénierie** : Ce seuil de convergence ultra-fin garantit que l'erreur résiduelle sur l'ensemble du réseau est inférieure à **0.0036 l/h**. Une telle précision assure une stabilité parfaite des pressions statiques et une distribution rigoureuse des débits, même dans les réseaux à haute complexité ou opérant à de très faibles vitesses d'air.
+#### Phase 1 — Convergence Primaire (Frottement Linéaire Pur et Singularités Constantes)
+Le solveur converge sans singularités dynamiques (tés, transitions). Cela garantit une base de débits stables et évite les oscillations précoces.
 
-### Étape 4 : Analyse Énergétique et Chemin Critique
+#### Phase 2 — Activation des Singularités Dynamiques
+Dès qu'une pré-convergence est atteinte ($Imb < 10^{-3} \text{ m}^3/\text{s}$), les singularités dynamiques sont injectées pour la convergence finale de haute précision ($< 10^{-9}$ m³/s).
 
-Une fois l'équilibre atteint, l'algorithme de **Dijkstra** identifie le **point critique** en calculant la **pression totale** (Statique + Dynamique) de chaque terminal $i$ . Le **maximum** de ces valeurs dicte la puissance nécessaire pour garantir les débits sur tout le réseau :
+### 5. Calcul Physique des Singularités
 
-<br>
+#### 5.1 Transitions Convergent / Divergent (Idelchik Ch.5)
 
-$$ \dot{W}_{fan} = \frac{ \max(P_{stat\textunderscore i} + P_{dyn\textunderscore i}) \cdot Q_{total}}{\eta} $$
+Appliquées uniquement aux jonctions simples (2 conduits) — les tés sont exclus pour éviter tout double comptage. Le type de transition est détecté automatiquement selon le sens réel du flux (soufflage ou extraction) :
 
-<br>
+- **Convergent** : $\zeta = \zeta_{fr} + \zeta_{loc}$ (frottement Idelchik 5.6 + perte locale 5.23)
+- **Divergent** : $\zeta = k(\alpha) \cdot (1-\beta)^2$ (Borda-Carnot pondéré, Idelchik/Miller)
 
-  > * **$\dot{W}_{fan}$** : Puissance aéraulique requise (Watts).
-  > * **$P_{stat\textunderscore i}$** : Pertes statiques cumulées jusqu'au terminal $i$ ($Pa$).
-  > * **$P_{dyn\textunderscore i}$** : Pression dynamique en sortie du terminal $i$ ($Pa$).
-  > * **$Q_{total}$** : Débit total du système ($m^3/s$).
-  > * **$\eta$** : Rendement global du groupe moto-ventilateur (ex : 0.75).
+Le ζ est toujours affecté sur la petite section (référence Idelchik). 
+
+#### 5.2 Tés Dynamiques (Idelchik Ch.7)
+
+Le type de jonction (**division** ou **confluence**) est détecté localement selon la direction du tronc commun au nœud — indépendamment du mode global soufflage/extraction :
+
+- **Division** : $\zeta_b = 1 + v_r^2 - 2x$ ; $\zeta_s = 0.4(1-x)^2$
+- **Confluence** : $\zeta_b = 1 + v_r^2 - 2(1-x)$ ; $\zeta_s = 0.1(1-x)^2$
+
+Les ζ sont convertis depuis la vitesse du tronc commun vers la vitesse locale de chaque conduit via le rapport $\left(\frac{v_{commun}}{v_{local}}\right)^2$.
+
+Les **ζ négatifs** (gain d'inertie) sont isolés et appliqués en post-traitement sans déstabiliser le solveur.
+
+### 6. Analyse du Chemin Critique & Dimensionnement Ventilateur
+
+#### 6.1 Identification par Ventilateur (Dijkstra)
+
+Pour chaque ventilateur, l'algorithme de **Dijkstra** identifie le circuit le plus résistant parmi toutes ses bouches terminales. Les pertes statiques sont calculées par sommation directe sur le chemin physique, intégrant frottements et singularités.
+
+#### 6.2 Formule de Bernoulli Généralisée
+
+Conforme à la classification **Almeco/AMCA** (méthodes B et C) :
+
+$$\boxed{\Delta P_{ventilateur} = \sum \Delta P_{pertes} + \frac{\rho\ \cdot V_{bouche}^2}{2}}$$
+
+Valable en **soufflage** (entrée libre, sortie raccordée) et en **extraction** (entrée raccordée, sortie libre) — la pression dynamique d'aspiration est implicitement gérée par la courbe fabricant dans les deux cas.
+
+#### 6.3 Dimensionnement Individuel Multi-Ventilateurs
+
+La puissance absorbée et le coût d'exploitation sont calculés pour chaque ventilateur via son rendement $\eta_i$ :
+
+$$\dot{W}_{fan,i} = \frac{\Delta P_{tot,i} \cdot Q_i}{\eta_i} \qquad \text{et} \qquad \dot{W}_{total} = \sum_i \dot{W}_{fan,i}$$
 
 ---
 
 ## 📖 Documentation API
 
-L'API intègre nativement deux interfaces de documentation automatique conformes au standard **OpenAPI 3.1**. Ces outils permettent de tester les requêtes en temps réel sans installer de client externe.
+L'API intègre nativement deux interfaces de documentation automatique conformes au standard **OpenAPI 3.1**.
 
 *   **Swagger UI** : Interface interactive permettant de tester chaque endpoint.
     > Accessible via : [`http://127.0.0.1:8000/docs`](http://127.0.0.1:8000/docs)
@@ -131,25 +150,36 @@ L'API intègre nativement deux interfaces de documentation automatique conformes
 ---
 
 ## 🔌 Endpoints de l'API
-Le tableau suivant récapitule les principales routes du moteur de calcul :
+Le tableau suivant récapitule toutes les routes du moteur de calcul :
+
+### 📋 API du Solveur Aéraulique
 
 | Méthode | Route | Description | Format |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/` | **Root** : Vérifie l'état du serveur | JSON |
-| `POST` | `/network/init` | **Initialisation** : Réinitialise le projet actuel | JSON |
-| `POST` | `/network/nodes` | **Nœuds** : Ajoute des nœuds (soufflage, extraction ou transit) | JSON |
-| `POST` | `/network/ducts` | **Conduits** : Ajoute des conduits (circulaires ou rectangulaires) | JSON |
-| `GET` | `/network/solve` | **Solveur** : Calcule l'équilibrage et le chemin critique | JSON |
-| `GET` | `/network/visualize` | **Rendu** : Génère le schéma PNG dynamique | PNG |
-| `GET` | `/network/download-report` | **Export** : Télécharge le rapport technique complet | PDF |
-| `GET` | `/suggest` | **Assistant** : Suggère des dimensions ($D$ ou $W \times H$) | JSON |
+| `GET` | `/system/info` | Diagnostic du système | JSON |
+| `POST` | `/network/reset` | Réinitialisation complète du moteur | JSON |
+| `POST` | `/project/info` | Configuration des métadonnées | JSON |
+| `POST` | `/network/import-project` | Importation massive du projet | JSON |
+| `POST` | `/network/nodes` | Configuration des points (nœuds) | JSON |
+| `POST` | `/network/ducts` | Définition des conduits (liaisons) | JSON |
+| `POST` | `/network/fans` | Configuration des ventilateurs | JSON |
+| `POST` | `/network/calculate` | Moteur de résolution itérative | JSON |
+| `GET` | `/network/schema` | Visualisation interactive | PNG |
+| `GET` | `/network/report` | Générateur de rapport PDF | PDF |
+| `GET` | `/network/data` | Export Jumeau Numérique (JSON) | JSON |
+| `GET` | `/catalog/zeta` | Catalogue des coefficients singuliers | JSON |
+| `GET` | `/tools/duct-sizer` | Utilitaire de pré-dimensionnement | JSON |
+| `POST` | `/shutdown`| Arrêt sécurisé du serveur | JSON |
 
 ---
 
 ## 🏗️ Exemple d'Utilisation (Workflow)
 
-### 1. Initialisation (`POST /network/init`)
+### 1. Reset (`POST /network/reset`)
 Purge le moteur pour garantir qu'aucun résidu de calcul précédent ne vienne fausser la nouvelle étude.
+
+### 2. Informations Projet (`POST /project/info`)
+Exemple : Projet = Batiment_R+4, Client = Promoteur_X, Site = Lyon_69
 
 ### 2. Définition des Nœuds (`POST /network/nodes`)
 Définition des points de soufflage (valeurs positives), d'extraction (valeurs négatives) et de transit (valeurs nulles).
