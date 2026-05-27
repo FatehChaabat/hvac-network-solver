@@ -1,12 +1,23 @@
 """
 HVAC Network Solver — Script de démarrage rapide
-Envoie automatiquement les 3 requêtes nécessaires à un calcul complet.
+Envoie automatiquement les requêtes nécessaires à un calcul complet.
+Récupère les résultats (png, pdf et json) et les sauvegarde dans le fichier local docs/. 
 API Live : https://hvac-api-wtuu.onrender.com
 """
 import requests
 import json
+import os
+import datetime
 
+# Configuration
 BASE_URL = "https://hvac-api-wtuu.onrender.com"
+
+# Création du dossier docs si inexistant
+if not os.path.exists("docs"):
+    os.makedirs("docs")
+
+# Générer un timestamp unique (ex: 20260527_224500)
+timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
 # Reset
 print("🔄 Reset du moteur...")
@@ -27,11 +38,11 @@ project = {
     "edges": [
         {"name": "main_trunk",   "n1": "fan_01", "n2": "jn_01", "L": 2.0, "D": 0.45, "epsilon": 0.15, "coeffs": [], "is_branch": False},
         {"name": "to_jn_a",      "n1": "jn_01",  "n2": "jn_a",  "L": 3.0, "D": 0.40, "epsilon": 0.15, "coeffs": [], "slope_degrees": 15, "is_branch": False},
-        {"name": "office_1",     "n1": "jn_a",   "n2": "of_01", "L": 2.0, "W": 0.20, "H": 0.17, "epsilon": 0.02, "coeffs": ["grille_soufflage_ailettes"], "is_branch": True},
-        {"name": "office_2",     "n1": "jn_a",   "n2": "of_02", "L": 2.0, "W": 0.20, "H": 0.16, "epsilon": 0.02, "coeffs": ["diffuseur_plafonnier_4_voies"], "is_branch": True},
-        {"name": "transit_to_b", "n1": "jn_a",   "n2": "jn_b",  "L": 3.0, "D": 0.30, "epsilon": 0.15, "coeffs": [], "is_branch": False},
-        {"name": "office_3",     "n1": "jn_b",   "n2": "of_03", "L": 2.0, "W": 0.20, "H": 0.18, "epsilon": 0.02, "coeffs": ["bouche_extraction_standard"], "is_branch": True},
-        {"name": "office_4",     "n1": "jn_b",   "n2": "of_04", "L": 2.0, "W": 0.20, "H": 0.17, "epsilon": 0.02, "coeffs": ["diffuseur_rotatif"], "is_branch": True}
+        {"name": "office_1",     "n1": "jn_a",  "n2": "of_01", "L": 2.0, "W": 0.20, "H": 0.17, "epsilon": 0.02, "coeffs": ["grille_soufflage_ailettes"], "is_branch": True},
+        {"name": "office_2",     "n1": "jn_a",  "n2": "of_02", "L": 2.0, "W": 0.20, "H": 0.16, "epsilon": 0.02, "coeffs": ["diffuseur_plafonnier_4_voies"], "is_branch": True},
+        {"name": "transit_to_b", "n1": "jn_a",  "n2": "jn_b",  "L": 3.0, "D": 0.30, "epsilon": 0.15, "coeffs": [], "is_branch": False},
+        {"name": "office_3",     "n1": "jn_b",  "n2": "of_03", "L": 2.0, "W": 0.20, "H": 0.18, "epsilon": 0.02, "coeffs": ["bouche_extraction_standard"], "is_branch": True},
+        {"name": "office_4",     "n1": "jn_b",  "n2": "of_04", "L": 2.0, "W": 0.20, "H": 0.17, "epsilon": 0.02, "coeffs": ["diffuseur_rotatif"], "is_branch": True}
     ],
     "fans": [
         {"name": "Main_Fan", "node_name": "fan_01", "rendement": 0.75, "description": "Fresh air supply unit"}
@@ -62,6 +73,25 @@ for fan_id, fan_data in fans.items():
     print(f"      Puissance        : {fan_data['shaft_input_power_w']} W")
     print(f"      Circuit critique : {fan_data['critical_node']}")
 
-print("\n🖼️  Schéma réseau → GET /network/schema")
-print("📄 Rapport PDF   → GET /network/report")
-print("📊 Export JSON   → GET /network/data")
+
+# Récupération des fichiers
+print("🖼️  Téléchargement du schéma réseau...")
+r_img = requests.get(f"{BASE_URL}/network/schema")
+img_filename = f"docs/schema_{timestamp}.png"
+with open(img_filename, "wb") as f:
+    f.write(r_img.content)
+print(f"   → Sauvegardé sous : {img_filename}")
+
+print("📄 Téléchargement du rapport PDF...")
+r_pdf = requests.get(f"{BASE_URL}/network/report")
+pdf_filename = f"docs/rapport_{timestamp}.pdf"
+with open(pdf_filename, "wb") as f:
+    f.write(r_pdf.content)
+print(f"   → Sauvegardé sous : {pdf_filename}")
+
+print("\n📊 Téléchargement du JSON...")
+r_json = requests.get(f"{BASE_URL}/network/data")
+json_filename = f"docs/resultat_{timestamp}.json"
+with open(json_filename, "w", encoding="utf-8") as f:
+    json.dump(r_json.json(), f, indent=4)
+print(f"   → Sauvegardé sous : {json_filename}")
