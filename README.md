@@ -62,11 +62,13 @@ Le moteur transforme la topologie physique du réseau en un système d'équation
 
 Le solveur adapte ses calculs aux conditions réelles de l'installation :
 
-**Propriétés de l'air :** Calcul dynamique de la masse volumique ($\rho$) via la **loi des gaz parfaits** couplée au modèle atmosphérique standard ISA, et de la viscosité dynamique ($\mu$) via l'équation de **Sutherland** — en fonction de la température ($T$) et de l'altitude du site ($z$).
+**Propriétés de l'air :** Calcul dynamique de la masse volumique ($\rho$) via la **loi des gaz parfaits** couplée au modèle atmosphérique standard ISA, et de la viscosité dynamique ($\mu$) via l'équation de **Sutherland** — en fonction de la température ($T$) et de l'altitude du site ($z$) :
 
 $$\rho = \frac{P_{atm}(z)}{R_{air} \cdot T} \qquad et \qquad \mu = \mu_0 \left(\frac{T}{T_0}\right)^{3/2} \frac{T_0 + S}{T + S}$$
 
 > $P_{atm}(z) = 101325 \cdot (1 - 2.25577 \times 10^{-5} \cdot z)^{5.25588}$ — Modèle ISA standard (valable jusqu'à 11 000 m)
+
+<br>
 
 **Friction de haute précision :** Résolution exacte de **Colebrook-White** par **bisection** (convergence garantie, précision $< 10^{-10}$) pour le régime turbulent, et **Poiseuille** ($\lambda = 64/Re$) pour le régime laminaire :
 
@@ -79,123 +81,94 @@ Le moteur condense les propriétés physiques et géométriques en une **résist
 
 $$R = \left( \lambda \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho}{2 \cdot A^2} \qquad \Rightarrow \qquad \Delta P = R \cdot Q^2$$
 
-Pour optimiser la stabilité numérique du solveur, la résistance $R_d$ est convertie en **conductance aéraulique** $C_d = 1 / \sqrt{R_d}$, définissant la capacité du conduit $d$ à laisser passer le flux pour une différence de pression donnée :
+<br>
+
+Pour optimiser la stabilité numérique du solveur, la résistance $R_d$ est convertie en **conductance aéraulique** $C_d = 1 / \sqrt{R_d}$, définissant la capacité du conduit $d$ à laisser passer le flux $Q_d$ pour une différence de pression donnée $\Delta P_d$:
 
 $$Q_d = \text{sign}(\Delta P_d) \cdot C_d \cdot \sqrt{|\Delta P_d|} \qquad \text{et} \qquad Imb_n = S_n + \sum Q_{d, \text{entrants}} - \sum Q_{d, \text{sortants}}$$
 
+  > * **$S_n$** : Contrainte de débit imposée au nœud $n$ (Injection $>0$, Extraction $<0$, Transit $=0$). **$Imb_n$** : Résidu de flux au nœud $n$.
+
 <br>
 
-  > * **$\Delta P_d$** : Différence de pression du conduit $d$ ($P_{amont} - P_{aval}$).
-  > * **$S_n$** : Contrainte de débit imposée au nœud $n$ (Injection $>0$, Extraction $<0$, Transit $=0$).
-  > * **$Imb_n$** : Résidu de flux. 
-
-La correction de pression à chaque nœud $n$ est calculée par **linéarisation de Newton-Raphson** (ajustement itératif) via la conductance totale des conduits $d$ connectés pour satisfaire la **loi de conservation de la masse** (Kirchhoff) :
+La correction de pression à chaque nœud $n$ est calculée par **linéarisation de Newton-Raphson** (ajustement itératif) via la conductance totale des conduits $d$ connectés :
 
 $$P_{n, \text{nouveau}} = P_{n, \text{ancien}} + w \cdot \frac{Imb_n}{\displaystyle\sum_{d \in n} (0.5 \cdot C_d / \sqrt{|\Delta P_d|})}$$
 
 > * **$w$ :** Facteur de relaxation adaptatif ($0.02 \le w \le 0.3$).
-> * **Convergence :** Le processus itère jusqu'à ce que $Imb_{max} < 10^{-9} \ \text{m}^3/\text{s}$ (soit $0.0036 \ \text{l/h}$).
 
-### 4. Solveur Nodal : Stratégie de Convergence en Deux Phases
 
-Pour garantir robustesse et précision sur tous types de topologies, le solveur adopte une stratégie en deux phases distinctes :
+### 3. Stratégie de Convergence en Deux Phases
 
-#### Phase 1 — Convergence Primaire (Frottement Linéaire Pur et Singularités Constantes)
-Le solveur converge sans singularités dynamiques (tés, transitions). Cela garantit une base de débits stables et évite les oscillations précoces.
+| Phase | Condition | Contenu |
+|---|---|---|
+| **Phase 1** — Convergence primaire | Démarrage | Frottement linéaire + singularités constantes uniquement |
+| **Phase 2** — Singularités dynamiques | $Imb < 10^{-3}$ m³/s | Activation tés + transitions convergent/divergent |
+| **Convergence finale** | $Imb < 10^{-9}$ m³/s | Arrêt — résidu ≈ 0.0036 l/h |
 
-#### Phase 2 — Activation des Singularités Dynamiques
-Dès qu'une pré-convergence est atteinte ($Imb < 10^{-3} \text{ m}^3/\text{s}$), les singularités dynamiques sont injectées pour la convergence finale de haute précision ($< 10^{-9}$ m³/s).
 
-### 5. Calcul Physique des Singularités
+### 4. Calcul Physique des Singularités
 
-#### 5.1 Transitions Convergent / Divergent (Idelchik Ch.5)
-
-Appliquées uniquement aux jonctions simples (2 conduits) — les tés sont exclus pour éviter tout double comptage. Le type de transition est détecté automatiquement selon le sens réel du flux (soufflage ou extraction) :
-
+**Transitions Convergent/Divergent (Idelchik Ch.5) :** Appliquées uniquement aux jonctions simples (2 conduits). Les tés sont exclus pour éviter tout double comptage. Le type de transition est détecté automatiquement selon le sens réel du flux (soufflage ou extraction). Le ζ est toujours affecté sur la petite section (référence Idelchik) :
 - **Convergent** : $\zeta = \zeta_{fr} + \zeta_{loc}$ (frottement Idelchik 5.6 + perte locale 5.23)
 - **Divergent** : $\zeta = k(\alpha) \cdot (1-\beta)^2$ (Borda-Carnot pondéré, Idelchik/Miller)
 
-Le ζ est toujours affecté sur la petite section (référence Idelchik). 
-
-#### 5.2 Tés Dynamiques (Idelchik Ch.7)
-
-Le type de jonction (**division** ou **confluence**) est détecté localement selon la direction du tronc commun au nœud — indépendamment du mode global soufflage/extraction :
-
+**Tés Dynamiques (Idelchik Ch.7) :** Type de jonction détecté **localement** selon la direction du tronc commun — indépendamment du mode global soufflage/extraction :
 - **Division** : $\zeta_b = 1 + v_r^2 - 2x$ ; $\zeta_s = 0.4(1-x)^2$
 - **Confluence** : $\zeta_b = 1 + v_r^2 - 2(1-x)$ ; $\zeta_s = 0.1(1-x)^2$
 
-Les ζ sont convertis depuis la vitesse du tronc commun vers la vitesse locale de chaque conduit via le rapport $\left(\frac{v_{commun}}{v_{local}}\right)^2$.
+Les ζ sont convertis depuis la vitesse du tronc commun vers la vitesse locale de chaque conduit via le rapport $\left(\frac{v_{commun}}{v_{local}}\right)^2$. Les **ζ négatifs** (gain d'inertie) sont isolés et appliqués en post-traitement sans déstabiliser le solveur.
 
-Les **ζ négatifs** (gain d'inertie) sont isolés et appliqués en post-traitement sans déstabiliser le solveur.
 
-### 6. Analyse du Chemin Critique & Dimensionnement Ventilateur
+### 5. Analyse du Chemin Critique & Dimensionnement Ventilateur
 
-#### 6.1 Identification par Ventilateur (Dijkstra)
+**Identification par Ventilateur (Dijkstra)** : Pour chaque ventilateur, l'algorithme de **Dijkstra** identifie le circuit le plus résistant parmi toutes ses bouches terminales. Les pertes statiques sont calculées par sommation directe sur le chemin physique, intégrant frottements et singularités.
 
-Pour chaque ventilateur, l'algorithme de **Dijkstra** identifie le circuit le plus résistant parmi toutes ses bouches terminales. Les pertes statiques sont calculées par sommation directe sur le chemin physique, intégrant frottements et singularités.
-
-#### 6.2 Formule de Bernoulli Généralisée
-
-Conforme à la classification **Almeco/AMCA** (méthodes B et C) :
+**Formule de Bernoulli Généralisée** : Conforme à la classification **Almeco/AMCA** (méthodes B et C) :
 
 $$\boxed{\Delta P_{ventilateur} = \sum \Delta P_{pertes} + \frac{\rho\ \cdot V_{bouche}^2}{2}}$$
 
 Valable en **soufflage** (entrée libre, sortie raccordée) et en **extraction** (entrée raccordée, sortie libre) — la pression dynamique d'aspiration est implicitement gérée par la courbe fabricant dans les deux cas.
 
-#### 6.3 Dimensionnement Individuel Multi-Ventilateurs
-
-La puissance absorbée et le coût d'exploitation sont calculés pour chaque ventilateur via son rendement $\eta_i$ :
+**Dimensionnement Individuel Multi-Ventilateurs** : La puissance absorbée et le coût d'exploitation sont calculés pour chaque ventilateur via son rendement $\eta_i$ :
 
 $$\dot{W}_{fan,i} = \frac{\Delta P_{tot,i} \cdot Q_i}{\eta_i} \qquad \text{et} \qquad \dot{W}_{total} = \sum_i \dot{W}_{fan,i}$$
 
----
-
-## 📖 Documentation API
-
-L'API intègre nativement deux interfaces de documentation automatique conformes au standard **OpenAPI 3.1**.
-
-*   **Swagger UI** : Interface interactive permettant de tester chaque endpoint.
-    > Accessible via : [`http://127.0.0.1:8000/docs`](http://127.0.0.1:8000/docs)
-
-*   **ReDoc** : Documentation structurée, idéale pour une lecture approfondie des modèles de données.
-    > Accessible via : [`http://127.0.0.1:8000/redoc`](http://127.0.0.1:8000/redoc)
 
 ---
 
 ## 🔌 Endpoints de l'API
-Le tableau suivant récapitule toutes les routes du moteur de calcul :
-
-### 📋 API du Solveur Aéraulique
 
 | Méthode | Route | Description | Format |
 | :--- | :--- | :--- | :--- |
 | `GET` | `/system/info` | Diagnostic du système | JSON |
 | `POST` | `/network/reset` | Réinitialisation complète du moteur | JSON |
-| `POST` | `/project/info` | Configuration des métadonnées | JSON |
-| `POST` | `/network/import-project` | Importation massive du projet | JSON |
-| `POST` | `/network/nodes` | Configuration des points (nœuds) | JSON |
-| `POST` | `/network/ducts` | Définition des conduits (liaisons) | JSON |
+| `POST` | `/project/info` | Configuration des métadonnées projet | JSON |
+| `POST` | `/network/import-project` | **Import global** (nœuds + conduits + fans) | JSON |
+| `POST` | `/network/nodes` | Configuration des nœuds | JSON |
+| `POST` | `/network/ducts` | Définition des conduits | JSON |
 | `POST` | `/network/fans` | Configuration des ventilateurs | JSON |
-| `POST` | `/network/calculate` | Moteur de résolution itérative | JSON |
-| `GET` | `/network/schema` | Visualisation interactive | PNG |
-| `GET` | `/network/report` | Générateur de rapport PDF | PDF |
-| `GET` | `/network/data` | Export Jumeau Numérique (JSON) | JSON |
+| `POST` | `/network/calculate` | **Solveur** — calcul complet + PDF | JSON |
+| `GET` | `/network/schema` | Schéma du réseau | PNG |
+| `GET` | `/network/report` | Rapport technique PDF | PDF |
+| `GET` | `/network/data` | Export données JSON complet | JSON |
 | `GET` | `/catalog/zeta` | Catalogue des coefficients singuliers | JSON |
-| `GET` | `/tools/duct-sizer` | Utilitaire de pré-dimensionnement | JSON |
-| `POST` | `/shutdown`| Arrêt sécurisé du serveur | JSON |
+| `POST` | `/tools/duct-sizer` | Prédimensionnement des conduits | JSON |
 
 ---
 
-## 🏗️ Exemple d'Utilisation (Workflow)
+## 🏗️ Tutoriel Rapide — Tester l'API en 3 étapes
 
-### 1. Reset (`POST /network/reset`)
-Purge le moteur pour garantir qu'aucun résidu de calcul précédent ne vienne fausser la nouvelle étude.
+> Accédez à **[https://hvac-api-wtuu.onrender.com/docs](https://hvac-api-wtuu.onrender.com/docs)** et suivez ces étapes dans l'interface Swagger.
 
-### 2. Informations Projet (`POST /project/info`)
+### Étape 1 — Reset (`POST /network/reset`)
+Purge le moteur avant chaque nouvelle étude.
+
+### Étape 2 (optionnelle) — Informations Projet (`POST /project/info`)
 Exemple : Projet = Batiment_R+4, Client = Promoteur_X, Site = Lyon_69
 
-### 3. Import Global (`POST /network/import-project`)
-Chargement de l'ensemble de la topologie en une seule requête — nœuds, conduits et ventilateurs :
+### Étape 3 — Import du projet (`POST /network/import-project`)
+Copiez-collez le JSON suivant en un seul appel :
 
 ```json
 {
@@ -225,17 +198,12 @@ Chargement de l'ensemble de la topologie en une seule requête — nœuds, condu
 ```
 
 > **Convention** : Les nœuds ventilateurs doivent impérativement porter le préfixe `fan_` (ex: `fan_1`, `fan_principal`) — détection automatique par le moteur.
+> **Catalogue ζ** : Les clés d'accessoires (`grille_soufflage_ailettes`, `diffuseur_plafonnier_4_voies`...) sont disponibles via `GET /catalog/zeta`.
 
-### 4. Calcul (`POST /network/calculate`)
-Le solveur exécute le pipeline complet de dimensionnement aéraulique et génère trois types de livrables :
+### Étape 4 — Calcul (`POST /network/calculate`)
+Lancez avec les paramètres par défaut ou personnalisez température, altitude et paramètres d'exploitation.
 
- - **Rapport de calcul** : Analyse synthétisée disponible instantanément dans la console et éditée en PDF (avec tableaux structurés pour une exploitation professionnelle).
-
- - **Visualisation graphique** : Schéma du réseau illustrant la topologie et l'état des composants.
-
- - **Fichier de données (DATA)** : Export structuré (JSON) regroupant l'intégralité des paramètres d'entrée et des résultats de sortie.
-
-Le rapport console synthétise les données clés comme suit :
+**Résultats obtenus** pour une température de 20°C et une altitude de 170 m (ex. ville de Lyon) :
 
 ```text
 ==============================================================================================================
@@ -347,47 +315,57 @@ Le rapport console synthétise les données clés comme suit :
 ==============================================================================================================
 ```
 
-Le schéma technique généré est annoté, illustrant les débits, les vitesses et l'état des sections par un codage couleur dynamique facilitant l'interprétation immédiate des résultats :
+### Étape 5 — Fonctionnalités et Génération de documents
+L'API propose trois points d'entrée principaux pour visualiser et exporter vos résultats de calcul aéraulique :
+
+**Visualisation du schéma réseau (`GET /network/schema`) :** Génération automatique et dynamique du schéma technique du réseau. Les schémas sont optimisés pour un rendu net et léger (DPI 100) afin de garantir une génération rapide sur les environnements Cloud.
 
 <p align="center">
   <img src="docs/temp_network_schema_demo.png" width="850" alt="Schéma technique du réseau aéraulique généré par l'API">
 </p>
 
+**Rapport PDF complet (`GET /network/report`) :** Un rapport PDF professionnel complet est généré à chaque calcul, incluant tous les tableaux ci-dessus, le schéma du réseau et les recommandations de redimensionnement acoustique.
+
+📎 [Exemple de rapport PDF](docs/example_report.pdf)
+
+**Export des données JSON (`GET /network/data`) :** Un rapport complet au format JSON contenant toutes les variables d'entrée et les résultats calculés, idéal pour une intégration dans d'autres outils de CAO ou de suivi.
+
+📎 [Exemple de rapport JSON](docs/example_data.json)
 
 ---
 
-## 📁 Structure du projet
+## 📁 Structure du Dépôt
+
 ```text
-hvac-network-solver/
+hvac-network-solver/          
 │
-├── README.md                                       # Documentation principale
-├── LICENSE                                         # Licence MIT                          
-├── requirements.txt                                # Dépendances Python 
-├── main.py                                         # API FastAPI
-├── network.py                                      # Solveur réseau
-├── calculs.py                                      # Modèle physique
-├── report_gen.py                                   # Générateur de rapports PDF
+├── README.md                 # Documentation complète & exemples
+├── LICENSE                   # Licence MIT
+├── quick_start.py            # Script de démarrage rapide
 │
-├── docs/
-│   └── temp_network_schema_demo.png                # Image démo
-│
-└── .gitignore                                      # Fichiers à exclure
-
+└── docs/
+    ├── temp_network_schema_demo.png   # Schéma réseau exemple
+    └── example_report.pdf            # Rapport PDF exemple
 ```
+
+> 💡 Le code source du moteur est hébergé dans un dépôt privé et déployé en continu sur Render.
+
 ---
-## 🛠️ Installation
+
+## 🛠️ Utilisation Locale (Optionnel)
+
+Si vous souhaitez déployer votre propre instance :
 
 ```bash
-# Cloner le dépôt
+# Cloner ce dépôt
 git clone https://github.com/FatehChaabat/hvac-network-solver.git
 cd hvac-network-solver
 
 # Installer les dépendances
-pip install -r requirements.txt
+pip install fastapi uvicorn[standard] pydantic networkx matplotlib fpdf2 numpy
 
-# Lancer l'API 
-python main.py  
-
+# Lancer (remplacer main.py par votre propre code source)
+uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 ---
@@ -414,7 +392,7 @@ Ce projet est sous licence **MIT**. Voir le fichier [LICENSE](LICENSE) pour plus
 ---
 
 <a name="duct-sizer"></a>
-## 🧮 Annexes : Assistant de Prédimensionnement
+## 🧮 Annexes : Assistant de Prédimensionnement — `POST /tools/duct-sizer`
 
 L'endpoint `/suggest` fonctionne comme un calculateur autonome. Il permet de déterminer les dimensions optimales de gaines (circulaires ou rectangulaires) à partir du **débit** et d'une **vitesse cible**, garantissant ainsi la maîtrise du **confort acoustique** et la limitation des **bruits de régénération**.
 
