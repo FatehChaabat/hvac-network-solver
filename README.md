@@ -166,13 +166,13 @@ L'API est structurée autour des endpoints suivants pour piloter le solveur, de 
 > Accédez à **[https://hvac-api-wtuu.onrender.com/docs](https://hvac-api-wtuu.onrender.com/docs)** et suivez ces étapes dans l'interface Swagger.
 
 ### Étape 1 — Reset (`POST /network/reset`)
-Purge le moteur avant chaque nouvelle étude.
+Purgez le moteur avant chaque nouvelle étude.
 
 ### Étape 2 (optionnelle) — Informations Projet (`POST /project/info`)
-Exemple : Projet = Batiment_R+4, Client = Promoteur_X, Site = Lyon_69
+Définissez les métadonnées de l'étude pour les rapports (ex. Projet: Batiment_R+4, Client: Promoteur_X, Site: Lyon_69)
 
 ### Étape 3 — Import du projet (`POST /network/import-project`)
-Copiez-collez le JSON suivant en un seul appel :
+Copiez-collez le JSON suivant en un seul appel pour configurer simultanément les nœuds, les conduits et les ventilateurs :
 
 ```json
 {
@@ -205,9 +205,7 @@ Copiez-collez le JSON suivant en un seul appel :
 > * **Catalogue ζ** : Les clés d'accessoires (`grille_soufflage_ailettes`, `diffuseur_plafonnier_4_voies`...) sont disponibles via `GET /catalog/zeta`.
 
 ### Étape 4 — Calcul (`POST /network/calculate`)
-Lancez avec les paramètres par défaut ou personnalisez température, altitude et paramètres d'exploitation.
-
-**Résultats obtenus** pour une température de 20°C et une altitude de 170 m (ex. ville de Lyon) :
+Lancez le solveur avec les paramètres par défaut, ou personnalisez la température, l'altitude et les paramètres d'exploitation. Voici, par exemple, les résultats obtenus pour une température de 20°C à une altitude de 170 m (type Lyon) :
 
 ```text
 ==============================================================================================================
@@ -392,15 +390,15 @@ Ingénieur en mécanique des fluides et énergétique, spécialisé en modélisa
 Ce projet est sous licence **MIT**. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
 <br>
-<br>
-<br>
-<br>
-<br>
 
 ---
+<p align="center"><b>ANNEXES</b></p>
+---
+
+<br>
 
 <a name="duct-sizer"></a>
-## 🧮 Annexes : Assistant de Prédimensionnement — `POST /tools/duct-sizer`
+## 🧮 Assistant de Prédimensionnement — `POST /tools/duct-sizer`
 
 L'endpoint `/suggest` fonctionne comme un calculateur autonome. Il permet de déterminer les dimensions optimales de gaines (circulaires ou rectangulaires) à partir du **débit** et d'une **vitesse cible**, garantissant ainsi la maîtrise du **confort acoustique** et la limitation des **bruits de régénération**.
 
