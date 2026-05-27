@@ -8,9 +8,25 @@
 ![Status](https://img.shields.io/badge/Status-Stable-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
+---
+
+## 🌐 Application en Ligne
+
+> L'API est déployée et accessible en production sur Render. Aucune installation requise.
+
+<p align="center">
+  <a href="https://hvac-api-wtuu.onrender.com/docs" target="_blank">
+    <img src="https://img.shields.io/badge/🚀%20Accéder%20à%20l'API%20Live-Swagger%20UI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="API Live"/>
+  </a>
+</p>
+
+> **[https://hvac-api-wtuu.onrender.com/docs](https://hvac-api-wtuu.onrender.com/docs)**
+>
+> ⚠️ *L'instance Render se met en veille après inactivité — prévoir ~30 secondes au premier chargement.*
 
 
 ---
+
 
 ## 💡 Valeur Ajoutée pour l'Ingénierie
 
@@ -19,6 +35,7 @@
 - **Universalité** : Supporte nativement les topologies mono et multi-ventilateurs, en soufflage et en extraction, avec détection automatique du mode opératoire.
 - **Automatisation** : Du dimensionnement des conduits à la génération de rapports techniques complets au format PDF.
 - **Flexibilité** : API REST scalable, prête pour l'intégration dans des workflows BIM, jumeaux numériques ou logiciels de CAO.
+
 
 ---
 
@@ -33,11 +50,13 @@
 - **Rapports PDF Professionnels** : Génération automatisée d'un document technique structuré incluant bilans aérauliques, audit hydraulique, analyse acoustique et recommandations de redimensionnement.
 - **Assistant de Design** : Module autonome de prédimensionnement des conduits circulaires et rectangulaires selon des cibles de vitesse et de débit *(Voir [l'annexe technique](#duct-sizer))*.
 
+
 ---
 
 ## 🔬 Méthodologie de Calcul & Ingénierie Physique
 
 Le moteur transforme la topologie physique du réseau en un système d'équations non linéaires, résolu par itérations successives jusqu'à l'équilibre parfait des flux.
+
 
 ### 1. Physique des Fluides & Propriétés Dynamiques
 
@@ -47,24 +66,18 @@ Le solveur adapte ses calculs aux conditions réelles de l'installation :
 
 $$\rho = \frac{P_{atm}(z)}{R_{air} \cdot T} \qquad et \qquad \mu = \mu_0 \left(\frac{T}{T_0}\right)^{3/2} \frac{T_0 + S}{T + S}$$
 
-> * $$P_{atm}(z) = 101325.0 \cdot (1.0 - 2.25577 \times 10^{-5} \cdot \text z)^{5.25588}$$.
-> * $R_{air} = 287.05 \ \text{J/(kg}\cdot\text{K)}$ &nbsp; | &nbsp; $\mu_0 = 1.716 \times 10^{-5} \ \text{Pa}\cdot\text{s}$ &nbsp; | &nbsp; $S = 110.4 \ \text{K}$ &nbsp; | &nbsp; $T_0 = 273.15 \ \text{K}$ &nbsp; | &nbsp; $T = (T_{temp\textunderscore c} + T_0) \ \text{K}$.
+> $P_{atm}(z) = 101325 \cdot (1 - 2.25577 \times 10^{-5} \cdot z)^{5.25588}$ — Modèle ISA standard (valable jusqu'à 11 000 m)
 
-**Friction de haute précision :** Utilisation de **Darcy-Weisbach** couplée à la résolution exacte de **Colebrook-White** par méthode de **bisection** (convergence garantie, précision $< 10^{-10}$) pour le régime turbulent, et de **Poiseuille** ($\lambda = 64/Re$) pour le régime laminaire :
+**Friction de haute précision :** Résolution exacte de **Colebrook-White** par **bisection** (convergence garantie, précision $< 10^{-10}$) pour le régime turbulent, et **Poiseuille** ($\lambda = 64/Re$) pour le régime laminaire :
 
 $$\Delta P = \left( \lambda \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho \cdot v^2}{2} \qquad et \qquad \frac{1}{\sqrt{\lambda}} = -2\log_{10}\left(\frac{\varepsilon/D_h}{3.7} + \frac{2.51}{Re\sqrt{\lambda}}\right)$$
 
 
-### 2. Résistance Aéraulique ($R$)
+### 2. Résistance Aéraulique & Formulation par Conductance
 
-Le moteur condense les propriétés physiques et géométriques en une **résistance aéraulique** $R$ (Pa·s²/m⁶), réévaluée dynamiquement à chaque itération :
+Le moteur condense les propriétés physiques et géométriques en une **résistance aéraulique** $R$ (Pa·s²/m⁶), réévaluée dynamiquement à chaque itération (analogie Loi d'Ohm non linéaire) :
 
 $$R = \left( \lambda \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho}{2 \cdot A^2} \qquad \Rightarrow \qquad \Delta P = R \cdot Q^2$$
-
-Cette analogie avec les circuits électriques (loi d'Ohm non linéaire) garantit une fidélité physique supérieure aux modèles à résistance fixe.
-
-
-### 3. Formulation par Conductance ($C$)
 
 Pour optimiser la stabilité numérique du solveur, la résistance $R_d$ est convertie en **conductance aéraulique** $C_d = 1 / \sqrt{R_d}$, définissant la capacité du conduit $d$ à laisser passer le flux pour une différence de pression donnée :
 
@@ -74,9 +87,9 @@ $$Q_d = \text{sign}(\Delta P_d) \cdot C_d \cdot \sqrt{|\Delta P_d|} \qquad \text
 
   > * **$\Delta P_d$** : Différence de pression du conduit $d$ ($P_{amont} - P_{aval}$).
   > * **$S_n$** : Contrainte de débit imposée au nœud $n$ (Injection $>0$, Extraction $<0$, Transit $=0$).
-  > * **$Imb_n$** : Résidu de flux. Si **$Imb_n \neq 0$**, le nœud $n$ est en déséquilibre et sa pression doit être ajustée. 
+  > * **$Imb_n$** : Résidu de flux. 
 
-La correction de pression est calculée par ajustement itératif (linéarisation de Newton-Raphson) via la conductance totale des conduits $d$ connectés au nœud $n$ pour satisfaire la **loi de conservation de la masse** (Kirchhoff) :
+La correction de pression à chaque nœud $n$ est calculée par **linéarisation de Newton-Raphson** (ajustement itératif) via la conductance totale des conduits $d$ connectés pour satisfaire la **loi de conservation de la masse** (Kirchhoff) :
 
 $$P_{n, \text{nouveau}} = P_{n, \text{ancien}} + w \cdot \frac{Imb_n}{\displaystyle\sum_{d \in n} (0.5 \cdot C_d / \sqrt{|\Delta P_d|})}$$
 
