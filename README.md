@@ -141,6 +141,7 @@ $$\boxed{OPEX = \dot{W}_{total} \cdot T_{annuel} \cdot C_{kWh} \cdot 10^{-3}}$$
 ---
 
 ## 🔌 Endpoints de l'API
+L'API est structurée autour des endpoints suivants pour piloter le solveur, de la configuration du réseau jusqu'à l'export des résultats :
 
 | Méthode | Route | Description | Format |
 | :--- | :--- | :--- | :--- |
