@@ -161,9 +161,9 @@ L'API est structurée autour des endpoints suivants pour piloter le solveur, de 
 
 ---
 
-## 🏗️ Tutoriel Rapide — Tester l'API en 3 étapes
+## 🏗️ Tutoriel Rapide — Tester l'API en 5 étapes
 
-> Accédez à **[https://hvac-api-wtuu.onrender.com/docs](https://hvac-api-wtuu.onrender.com/docs)** et suivez ces étapes dans l'interface Swagger.
+Accédez à **[https://hvac-api-wtuu.onrender.com/docs](https://hvac-api-wtuu.onrender.com/docs)** et suivez ces étapes dans l'interface Swagger :
 
 ### Étape 1 — Reset (`POST /network/reset`)
 Purgez le moteur avant chaque nouvelle étude.
@@ -344,7 +344,6 @@ hvac-network-solver/
 ├── README.md                       # Documentation complète & exemples
 ├── LICENSE                         # Licence MIT
 ├── quick_start.py                  # Script de démarrage rapide
-├── requirements.txt                # Dépendances du projet
 │
 ├── docs/
 │   ├── Batiment_R+4_Promoteur_X_20260526_194113.png              # Schéma réseau exemple
@@ -354,25 +353,24 @@ hvac-network-solver/
 └── .gitignore                      # Fichiers exclus du dépôt
 ```
 
-> 💡 Le code source du moteur est hébergé dans un dépôt privé et déployé en continu sur Render.
-
 ---
 
-## 🛠️ Utilisation Locale (Optionnel)
+## 🛠️ Déploiement et Test Local
 
-Si vous souhaitez déployer votre propre instance :
+Pour exécuter une simulation complète et générer les rapports localement, utilisez le script de démarrage rapide :
 
 ```bash
 # Cloner ce dépôt
 git clone https://github.com/FatehChaabat/hvac-network-solver.git
 cd hvac-network-solver
 
-# Installer les dépendances
-pip install -r requirements.txt
+# Installer la dépendance nécessaire
+pip install requests
 
-# Lancer le serveur
-uvicorn main:app --reload
+# Lancer le script de démonstration
+python quick_start.py
 ```
+> 💡 **Note importante :** Ce dépôt public est une interface de démonstration et de documentation. Le moteur de calcul propriétaire est hébergé dans un dépôt privé, synchronisé via un pipeline CI/CD sur Render.
 
 ---
 
