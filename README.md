@@ -327,12 +327,12 @@ L'API propose trois points d'entrée principaux pour visualiser et exporter vos 
 **Visualisation du schéma réseau (`GET /network/schema`) :** Génération automatique et dynamique du schéma technique du réseau. Les schémas sont optimisés pour un rendu net et léger (DPI 100) afin de garantir une génération rapide sur les environnements Cloud.
 
 <p align="center">
-  <img src="docs/temp_network_schema_demo.png" width="850" alt="Schéma technique du réseau aéraulique généré par l'API">
+  <img src="docs/Batiment_R+4_Promoteur_X_20260526_194113.png" width="850" alt="Schéma technique du réseau aéraulique généré par l'API">
 </p>
 
 **Rapport PDF complet (`GET /network/report`) :** Un rapport PDF professionnel complet est généré à chaque calcul, incluant tous les tableaux ci-dessus, le schéma du réseau et les recommandations de redimensionnement acoustique.
 
-📎 [Exemple de rapport PDF](docs/example_report.pdf)
+📎 [Exemple de rapport PDF](docs/Batiment_R+4_Promoteur_X_20260526_194113.pdf)
 
 **Export des données JSON (`GET /network/data`) :** Un rapport complet au format JSON contenant toutes les variables d'entrée et les résultats calculés, idéal pour une intégration dans d'autres outils de CAO ou de suivi.
 
@@ -345,13 +345,16 @@ L'API propose trois points d'entrée principaux pour visualiser et exporter vos 
 ```text
 hvac-network-solver/          
 │
-├── README.md                 # Documentation complète & exemples
-├── LICENSE                   # Licence MIT
-├── quick_start.py            # Script de démarrage rapide
+├── README.md                                                    # Documentation complète & exemples
+├── LICENSE                                                      # Licence MIT
+├── quick_start.py                                               # Script de démarrage rapide
 │
 └── docs/
-    ├── temp_network_schema_demo.png   # Schéma réseau exemple
-    └── example_report.pdf            # Rapport PDF exemple
+│    ├── Batiment_R+4_Promoteur_X_20260526_194113.png             # Schéma réseau exemple
+│    ├── Batiment_R+4_Promoteur_X_20260526_194113.pdf             # Rapport PDF exemple
+│    └── Batiment_R+4_Promoteur_X_20260526_194113.json            # Rapport JSON exemple
+│
+└── .gitignore                                                    # Fichiers exclus du dépôt
 ```
 
 > 💡 Le code source du moteur est hébergé dans un dépôt privé et déployé en continu sur Render.
