@@ -1,0 +1,408 @@
+{
+    "metadata": {
+        "project_name": "Batiment_R+4",
+        "client_name": "Promoteur_X",
+        "site_location": "Lyon_69",
+        "export_date": "26/05/2026 19:41:48",
+        "status": "Computed",
+        "calculation_conditions": {
+            "air_temperature_c": 20.0,
+            "altitude_m": 170.0,
+            "air_density_kgm3": 1.18,
+            "dynamic_viscosity_pas": "1.81e-05"
+        }
+    },
+    "input_design_configuration": {
+        "design_delivery_points": {
+            "fan_01": {
+                "target_flow_m3h": 2200.0,
+                "pressure_status": "Initial Value (Pending Calculation)",
+                "node_static_pressure_pa": 0.0,
+                "node_type": "Source/Fan"
+            },
+            "jn_01": {
+                "target_flow_m3h": 0.0,
+                "pressure_status": "Initial Value (Pending Calculation)",
+                "node_static_pressure_pa": 0.0,
+                "node_type": "Junction"
+            },
+            "jn_a": {
+                "target_flow_m3h": 0.0,
+                "pressure_status": "Initial Value (Pending Calculation)",
+                "node_static_pressure_pa": 0.0,
+                "node_type": "Junction"
+            },
+            "of_01": {
+                "target_flow_m3h": -550.0,
+                "pressure_status": "Initial Value (Pending Calculation)",
+                "node_static_pressure_pa": 0.0,
+                "node_type": "Terminal/Diffuser"
+            },
+            "of_02": {
+                "target_flow_m3h": -500.0,
+                "pressure_status": "Initial Value (Pending Calculation)",
+                "node_static_pressure_pa": 0.0,
+                "node_type": "Terminal/Diffuser"
+            },
+            "jn_b": {
+                "target_flow_m3h": 0.0,
+                "pressure_status": "Initial Value (Pending Calculation)",
+                "node_static_pressure_pa": 0.0,
+                "node_type": "Junction"
+            },
+            "of_03": {
+                "target_flow_m3h": -600.0,
+                "pressure_status": "Initial Value (Pending Calculation)",
+                "node_static_pressure_pa": 0.0,
+                "node_type": "Terminal/Diffuser"
+            },
+            "of_04": {
+                "target_flow_m3h": -550.0,
+                "pressure_status": "Initial Value (Pending Calculation)",
+                "node_static_pressure_pa": 0.0,
+                "node_type": "Terminal/Diffuser"
+            }
+        },
+        "assigned_duct_segments": [
+            {
+                "segment_id": "main_trunk",
+                "shape": "Circular",
+                "upstream_node": "fan_01",
+                "downstream_node": "jn_01",
+                "length_m": 2.0,
+                "width_mm": null,
+                "height_mm": null,
+                "equivalent_diameter_mm": 450.0,
+                "material_roughness_mm": 0.15,
+                "total_zeta_coefficient": 0.0,
+                "flow_rate_m3h": 0.0,
+                "air_velocity_ms": 0.0,
+                "total_pressure_drop_pa": 0.0
+            },
+            {
+                "segment_id": "to_junction_A",
+                "shape": "Circular",
+                "upstream_node": "jn_01",
+                "downstream_node": "jn_a",
+                "length_m": 3.0,
+                "width_mm": null,
+                "height_mm": null,
+                "equivalent_diameter_mm": 400.0,
+                "material_roughness_mm": 0.15,
+                "total_zeta_coefficient": 0.03,
+                "flow_rate_m3h": 0.0,
+                "air_velocity_ms": 0.0,
+                "total_pressure_drop_pa": 0.0
+            },
+            {
+                "segment_id": "office_1",
+                "shape": "Rectangular",
+                "upstream_node": "jn_a",
+                "downstream_node": "of_01",
+                "length_m": 2.0,
+                "width_mm": 200.0,
+                "height_mm": 170.0,
+                "equivalent_diameter_mm": 184.0,
+                "material_roughness_mm": 0.02,
+                "total_zeta_coefficient": 3.27,
+                "flow_rate_m3h": 0.0,
+                "air_velocity_ms": 0.0,
+                "total_pressure_drop_pa": 0.0
+            },
+            {
+                "segment_id": "office_2",
+                "shape": "Rectangular",
+                "upstream_node": "jn_a",
+                "downstream_node": "of_02",
+                "length_m": 2.0,
+                "width_mm": 200.0,
+                "height_mm": 160.0,
+                "equivalent_diameter_mm": 178.0,
+                "material_roughness_mm": 0.02,
+                "total_zeta_coefficient": 4.37,
+                "flow_rate_m3h": 0.0,
+                "air_velocity_ms": 0.0,
+                "total_pressure_drop_pa": 0.0
+            },
+            {
+                "segment_id": "transit_to_B",
+                "shape": "Circular",
+                "upstream_node": "jn_a",
+                "downstream_node": "jn_b",
+                "length_m": 3.0,
+                "width_mm": null,
+                "height_mm": null,
+                "equivalent_diameter_mm": 300.0,
+                "material_roughness_mm": 0.15,
+                "total_zeta_coefficient": 0.13,
+                "flow_rate_m3h": 0.0,
+                "air_velocity_ms": 0.0,
+                "total_pressure_drop_pa": 0.0
+            },
+            {
+                "segment_id": "office_3",
+                "shape": "Rectangular",
+                "upstream_node": "jn_b",
+                "downstream_node": "of_03",
+                "length_m": 2.0,
+                "width_mm": 200.0,
+                "height_mm": 180.0,
+                "equivalent_diameter_mm": 189.0,
+                "material_roughness_mm": 0.02,
+                "total_zeta_coefficient": 2.3,
+                "flow_rate_m3h": 0.0,
+                "air_velocity_ms": 0.0,
+                "total_pressure_drop_pa": 0.0
+            },
+            {
+                "segment_id": "office_4",
+                "shape": "Rectangular",
+                "upstream_node": "jn_b",
+                "downstream_node": "of_04",
+                "length_m": 2.0,
+                "width_mm": 200.0,
+                "height_mm": 170.0,
+                "equivalent_diameter_mm": 184.0,
+                "material_roughness_mm": 0.02,
+                "total_zeta_coefficient": 4.19,
+                "flow_rate_m3h": 0.0,
+                "air_velocity_ms": 0.0,
+                "total_pressure_drop_pa": 0.0
+            }
+        ]
+    },
+    "system_performance_and_fan_requirements": {
+        "ventilation_type": "Supply",
+        "design_volumetric_flow_rate_m3h": 2200.0,
+        "fans": {
+            "fan_01": {
+                "fan_label": "Main_Fan",
+                "description": "Fresh air supply",
+                "nominal_target_efficiency": 0.75,
+                "fan_flow_m3h": 2200.0,
+                "critical_node": "of_04",
+                "cumulative_static_pa": 59.84,
+                "exit_dynamic_pa": 19.57,
+                "total_pressure_pa": 79.4,
+                "shaft_input_power_w": 64.7
+            }
+        },
+        "operating_cost_projections": {
+            "total_shaft_input_power_w": 64.7,
+            "service_profile_assumptions": {
+                "daily_operating_cycle_h": 10.0,
+                "annual_operating_cycle_days": 250
+            },
+            "annual_energy_usage_kwh": 161.75,
+            "unit_energy_cost_euro_kwh": 0.25,
+            "estimated_annual_opex_euro": 40.44
+        }
+    },
+    "terminal_balancing_analysis": [
+        {
+            "fan_id": "fan_01",
+            "fan_label": "Main_Fan",
+            "terminal_node": "of_01",
+            "cumulative_static_pa": 44.84,
+            "dynamic_pressure_pa": 19.57,
+            "total_pressure_pa": 64.41,
+            "required_balancing_pressure_pa": 14.99,
+            "required_balancing_zeta": 0.766
+        },
+        {
+            "fan_id": "fan_01",
+            "fan_label": "Main_Fan",
+            "terminal_node": "of_02",
+            "cumulative_static_pa": 54.44,
+            "dynamic_pressure_pa": 18.47,
+            "total_pressure_pa": 72.92,
+            "required_balancing_pressure_pa": 6.48,
+            "required_balancing_zeta": 0.351
+        },
+        {
+            "fan_id": "fan_01",
+            "fan_label": "Main_Fan",
+            "terminal_node": "of_03",
+            "cumulative_static_pa": 39.03,
+            "dynamic_pressure_pa": 20.62,
+            "total_pressure_pa": 59.64,
+            "required_balancing_pressure_pa": 19.76,
+            "required_balancing_zeta": 0.958
+        },
+        {
+            "fan_id": "fan_01",
+            "fan_label": "Main_Fan",
+            "terminal_node": "of_04",
+            "cumulative_static_pa": 59.84,
+            "dynamic_pressure_pa": 19.57,
+            "total_pressure_pa": 79.4,
+            "required_balancing_pressure_pa": 0.0,
+            "required_balancing_zeta": 0.0
+        }
+    ],
+    "duct_details": [
+        {
+            "duct_id": "main_trunk",
+            "topology_type": "main",
+            "performance": {
+                "flow_rate_m3h": 2200.0,
+                "velocity_ms": 3.84,
+                "total_linear_pressure_loss_pa": 0.75,
+                "linear_pressure_loss_pa_per_m": 0.373
+            },
+            "acoustic": {
+                "noise_lw_dba": 31.2,
+                "acoustic_status": "OPTIMAL",
+                "acoustic_recommendation": "Silent design. No additional acoustic treatment required."
+            },
+            "audit": {
+                "reynolds": 112523,
+                "regime": "Turbulent",
+                "friction_lambda": 0.0193,
+                "singular_pressure_loss_pa": 0.0,
+                "total_zeta": 0.0
+            }
+        },
+        {
+            "duct_id": "to_junction_A",
+            "topology_type": "intermediary",
+            "performance": {
+                "flow_rate_m3h": 2200.0,
+                "velocity_ms": 4.86,
+                "total_linear_pressure_loss_pa": 2.01,
+                "linear_pressure_loss_pa_per_m": 0.669
+            },
+            "acoustic": {
+                "noise_lw_dba": 35.3,
+                "acoustic_status": "OPTIMAL",
+                "acoustic_recommendation": "Silent design. No additional acoustic treatment required."
+            },
+            "audit": {
+                "reynolds": 126588,
+                "regime": "Turbulent",
+                "friction_lambda": 0.0192,
+                "singular_pressure_loss_pa": 0.43,
+                "total_zeta": 0.031
+            }
+        },
+        {
+            "duct_id": "office_1",
+            "topology_type": "terminal",
+            "performance": {
+                "flow_rate_m3h": 550.0,
+                "velocity_ms": 4.49,
+                "total_linear_pressure_loss_pa": 2.72,
+                "linear_pressure_loss_pa_per_m": 1.359
+            },
+            "acoustic": {
+                "noise_lw_dba": 27.9,
+                "acoustic_status": "OPTIMAL",
+                "acoustic_recommendation": "Silent design. No additional acoustic treatment required."
+            },
+            "audit": {
+                "reynolds": 53741,
+                "regime": "Turbulent",
+                "friction_lambda": 0.021,
+                "singular_pressure_loss_pa": 38.94,
+                "total_zeta": 3.269
+            }
+        },
+        {
+            "duct_id": "office_2",
+            "topology_type": "terminal",
+            "performance": {
+                "flow_rate_m3h": 500.0,
+                "velocity_ms": 4.34,
+                "total_linear_pressure_loss_pa": 2.66,
+                "linear_pressure_loss_pa_per_m": 1.33
+            },
+            "acoustic": {
+                "noise_lw_dba": 26.9,
+                "acoustic_status": "OPTIMAL",
+                "acoustic_recommendation": "Silent design. No additional acoustic treatment required."
+            },
+            "audit": {
+                "reynolds": 50213,
+                "regime": "Turbulent",
+                "friction_lambda": 0.0213,
+                "singular_pressure_loss_pa": 48.6,
+                "total_zeta": 4.373
+            }
+        },
+        {
+            "duct_id": "transit_to_B",
+            "topology_type": "intermediary",
+            "performance": {
+                "flow_rate_m3h": 1150.0,
+                "velocity_ms": 4.52,
+                "total_linear_pressure_loss_pa": 2.49,
+                "linear_pressure_loss_pa_per_m": 0.83
+            },
+            "acoustic": {
+                "noise_lw_dba": 31.2,
+                "acoustic_status": "OPTIMAL",
+                "acoustic_recommendation": "Silent design. No additional acoustic treatment required."
+            },
+            "audit": {
+                "reynolds": 88228,
+                "regime": "Turbulent",
+                "friction_lambda": 0.0207,
+                "singular_pressure_loss_pa": 1.53,
+                "total_zeta": 0.127
+            }
+        },
+        {
+            "duct_id": "office_3",
+            "topology_type": "terminal",
+            "performance": {
+                "flow_rate_m3h": 600.0,
+                "velocity_ms": 4.63,
+                "total_linear_pressure_loss_pa": 2.76,
+                "linear_pressure_loss_pa_per_m": 1.381
+            },
+            "acoustic": {
+                "noise_lw_dba": 28.8,
+                "acoustic_status": "OPTIMAL",
+                "acoustic_recommendation": "Silent design. No additional acoustic treatment required."
+            },
+            "audit": {
+                "reynolds": 57084,
+                "regime": "Turbulent",
+                "friction_lambda": 0.0207,
+                "singular_pressure_loss_pa": 29.07,
+                "total_zeta": 2.298
+            }
+        },
+        {
+            "duct_id": "office_4",
+            "topology_type": "terminal",
+            "performance": {
+                "flow_rate_m3h": 550.0,
+                "velocity_ms": 4.49,
+                "total_linear_pressure_loss_pa": 2.72,
+                "linear_pressure_loss_pa_per_m": 1.359
+            },
+            "acoustic": {
+                "noise_lw_dba": 27.9,
+                "acoustic_status": "OPTIMAL",
+                "acoustic_recommendation": "Silent design. No additional acoustic treatment required."
+            },
+            "audit": {
+                "reynolds": 53741,
+                "regime": "Turbulent",
+                "friction_lambda": 0.021,
+                "singular_pressure_loss_pa": 49.92,
+                "total_zeta": 4.19
+            }
+        }
+    ],
+    "solver_performance": {
+        "execution_time_sec": 0.119,
+        "convergence_status": "stable",
+        "residual_error_m3s": 8.2e-10,
+        "tolerance_targeted_m3s": 1e-09,
+        "iterations_performed": 477,
+        "max_iterations_allowed": 1000000,
+        "timestamp": "26/05/2026 19:41:13"
+    }
+}

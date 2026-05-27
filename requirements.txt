@@ -1,7 +1,0 @@
-fastapi
-uvicorn[standard]
-numpy
-matplotlib
-pydantic
-python-multipart
-networkx

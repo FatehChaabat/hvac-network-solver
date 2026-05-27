@@ -35,9 +35,9 @@ Thumbs.db
 temp_network.json
 
 # Résultats de calculs (PDF et schémas temporaires)
-docs/*.pdf
-docs/temp_network_schema.png
+# docs/*.pdf
+# docs/temp_network_schema.png
 
 
-# Autoriser uniquement l'image de démonstration pour le README
-!docs/temp_network_schema_demo.png
+# # Autoriser uniquement l'image de démonstration pour le README
+# !docs/temp_network_schema_demo.png
