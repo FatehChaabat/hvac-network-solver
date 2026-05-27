@@ -138,9 +138,6 @@ Le coût annuel estimé est dérivé du temps de service annuel ($T_{annuel}$ en
 
 $$\boxed{OPEX = \dot{W}_{total} \cdot T_{annuel} \cdot C_{kWh} \cdot 10^{-3}}$$
 
-> *Où $\dot{W}$ est exprimé en Watts, $Q$ en $m^3/s$, $\Delta P$ en Pascals et $T_{annuel}$ en heures.*
-
-
 ---
 
 ## 🔌 Endpoints de l'API
@@ -154,7 +151,7 @@ $$\boxed{OPEX = \dot{W}_{total} \cdot T_{annuel} \cdot C_{kWh} \cdot 10^{-3}}$$
 | `POST` | `/network/nodes` | Configuration des nœuds | JSON |
 | `POST` | `/network/ducts` | Définition des conduits | JSON |
 | `POST` | `/network/fans` | Configuration des ventilateurs | JSON |
-| `POST` | `/network/calculate` | **Solveur** — calcul complet + PDF | JSON |
+| `POST` | `/network/calculate` | **Solveur** — calcul complet | JSON |
 | `GET` | `/network/schema` | Schéma du réseau | PNG |
 | `GET` | `/network/report` | Rapport technique PDF | PDF |
 | `GET` | `/network/data` | Export données JSON complet | JSON |
@@ -203,8 +200,8 @@ Copiez-collez le JSON suivant en un seul appel :
 }
 ```
 
-> **Convention** : Les nœuds ventilateurs doivent impérativement porter le préfixe `fan_` (ex: `fan_1`, `fan_principal`) — détection automatique par le moteur.
-> **Catalogue ζ** : Les clés d'accessoires (`grille_soufflage_ailettes`, `diffuseur_plafonnier_4_voies`...) sont disponibles via `GET /catalog/zeta`.
+> * **Convention** : Les nœuds ventilateurs doivent impérativement porter le préfixe `fan_` (ex: `fan_1`, `fan_principal`) — détection automatique par le moteur.
+> * **Catalogue ζ** : Les clés d'accessoires (`grille_soufflage_ailettes`, `diffuseur_plafonnier_4_voies`...) sont disponibles via `GET /catalog/zeta`.
 
 ### Étape 4 — Calcul (`POST /network/calculate`)
 Lancez avec les paramètres par défaut ou personnalisez température, altitude et paramètres d'exploitation.
@@ -343,18 +340,19 @@ L'API propose trois points d'entrée principaux pour visualiser et exporter vos 
 ## 📁 Structure du Dépôt
 
 ```text
-hvac-network-solver/          
+hvac-network-solver/
 │
-├── README.md                                                    # Documentation complète & exemples
-├── LICENSE                                                      # Licence MIT
-├── quick_start.py                                               # Script de démarrage rapide
+├── README.md                       # Documentation complète & exemples
+├── LICENSE                         # Licence MIT
+├── quick_start.py                  # Script de démarrage rapide
+├── requirements.txt                # Dépendances du projet
 │
-└── docs/
-│    ├── Batiment_R+4_Promoteur_X_20260526_194113.png             # Schéma réseau exemple
-│    ├── Batiment_R+4_Promoteur_X_20260526_194113.pdf             # Rapport PDF exemple
-│    └── Batiment_R+4_Promoteur_X_20260526_194113.json            # Rapport JSON exemple
+├── docs/
+│   ├── Batiment_R+4_Promoteur_X_20260526_194113.png              # Schéma réseau exemple
+│   ├── Batiment_R+4_Promoteur_X_20260526_194113.pdf              # Rapport PDF exemple
+│   └── Batiment_R+4_Promoteur_X_20260526_194113.json             # Rapport JSON exemple
 │
-└── .gitignore                                                    # Fichiers exclus du dépôt
+└── .gitignore                      # Fichiers exclus du dépôt
 ```
 
 > 💡 Le code source du moteur est hébergé dans un dépôt privé et déployé en continu sur Render.
@@ -371,10 +369,10 @@ git clone https://github.com/FatehChaabat/hvac-network-solver.git
 cd hvac-network-solver
 
 # Installer les dépendances
-pip install fastapi uvicorn[standard] pydantic networkx matplotlib fpdf2 numpy
+pip install -r requirements.txt
 
-# Lancer (remplacer main.py par votre propre code source)
-uvicorn main:app --host 0.0.0.0 --port 8000
+# Lancer le serveur
+uvicorn main:app --reload
 ```
 
 ---
