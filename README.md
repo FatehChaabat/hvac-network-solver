@@ -336,7 +336,7 @@ L'API propose trois points d'entrée principaux pour visualiser et exporter vos 
 
 **Export des données JSON (`GET /network/data`) :** Un rapport complet au format JSON contenant toutes les variables d'entrée et les résultats calculés, idéal pour une intégration dans d'autres outils de CAO ou de suivi.
 
-📎 [Exemple de rapport JSON](docs/example_data.json)
+📎 [Exemple de rapport JSON](docs/Batiment_R+4_Promoteur_X_20260526_194113.json)
 
 ---
 
