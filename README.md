@@ -130,9 +130,15 @@ $$\boxed{\Delta P_{ventilateur} = \sum \Delta P_{pertes} + \frac{\rho\ \cdot V_{
 
 Valable en **soufflage** (entrée libre, sortie raccordée) et en **extraction** (entrée raccordée, sortie libre) — la pression dynamique d'aspiration est implicitement gérée par la courbe fabricant dans les deux cas.
 
-**Dimensionnement Individuel Multi-Ventilateurs** : La puissance absorbée et le coût d'exploitation sont calculés pour chaque ventilateur via son rendement $\eta_i$ :
+**Dimensionnement Individuel Multi-Ventilateurs** : La puissance absorbée est calculée pour chaque ventilateur via son rendement ($\eta_i$) :
 
 $$\dot{W}_{fan,i} = \frac{\Delta P_{tot,i} \cdot Q_i}{\eta_i} \qquad \text{et} \qquad \dot{W}_{total} = \sum_i \dot{W}_{fan,i}$$
+
+Le coût annuel estimé est dérivé du temps de service annuel ($T_{annuel}$ en heures) et du coût unitaire de l'énergie ($C_{kWh}$) :
+
+$$\boxed{OPEX = \dot{W}_{total} \cdot T_{annuel} \cdot C_{kWh} \cdot 10^{-3}}$$
+
+> *Où $\dot{W}$ est exprimé en Watts, $Q$ en $m^3/s$, $\Delta P$ en Pascals et $T_{annuel}$ en heures.*
 
 
 ---
