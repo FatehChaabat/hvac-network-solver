@@ -161,12 +161,12 @@ L'API est structurée autour des endpoints suivants pour piloter le solveur, de 
 
 ---
 
-## 🏗️ Tutoriel Rapide — Tester l'API en 5 étapes
+## 🏗️ Tutoriel Rapide — Tester l'API
 
 Accédez à **[https://hvac-api-wtuu.onrender.com/docs](https://hvac-api-wtuu.onrender.com/docs)** et suivez ces étapes dans l'interface Swagger :
 
 ### Étape 1 — Reset (`POST /network/reset`)
-Purgez le moteur avant chaque nouvelle étude.
+Purgez le moteur avant chaque nouvelle simulation.
 
 ### Étape 2 (optionnelle) — Informations Projet (`POST /project/info`)
 Définissez les métadonnées de l'étude pour les rapports (ex. Projet: Batiment_R+4, Client: Promoteur_X, Site: Lyon_69)
@@ -205,153 +205,24 @@ Copiez-collez le JSON suivant en un seul appel pour configurer simultanément le
 > * **Catalogue ζ** : Les clés d'accessoires (`grille_soufflage_ailettes`, `diffuseur_plafonnier_4_voies`...) sont disponibles via `GET /catalog/zeta`.
 
 ### Étape 4 — Calcul (`POST /network/calculate`)
-Lancez le solveur avec les paramètres par défaut, ou personnalisez la température, l'altitude et les paramètres d'exploitation. Voici, par exemple, les résultats obtenus pour une température de 20°C à une altitude de 170 m (type Lyon) :
-
-```text
-==============================================================================================================
-
-===== 1. NETWORK SUMMARY =====
-
-  [ AIR PROPERTIES ]
-      Temperature used (°C)                        : 20.00
-      Altitude (m)                                 : 170.00
-      Density (kg/m³)                              : 1.18
-      Dynamic viscosity (Pa·s)                     : 1.813e-05
-
-  [ SYSTEM PERFORMANCE METRICS ]
-      Ventilation type                             : Supply
-      Design volumetric flow rate (m³/h)           : 2200.00
-
-      [ FANS ]
-
-          [ FAN 01 ]
-              Fan label                                    : Main_Fan
-              Description                                  : Fresh air supply
-              Nominal efficiency (%)                       : 75%
-              Fan flow (m³/h)                              : 2200.00
-              Critical node                                : of_04
-              Cumulative static (Pa)                       : 59.84
-              Exit dynamic (Pa)                            : 19.57
-              Total pressure (Pa)                          : 79.40
-              Shaft input power (W)                        : 64.70
-
-      [ OPERATING COST PROJECTIONS ]
-          Total shaft input power (W)                  : 64.70
-
-          [ SERVICE PROFILE ASSUMPTIONS ]
-              Daily operating cycle h                      : 10.00
-              Annual operating cycle days                  : 250
-          Annual energy usage (kWh)                    : 161.75
-          Unit energy cost euro (kWh)                  : 0.25
-          Estimated annual opex ()                    : 40.44
-
---------------------------------------------------------------------------------------------------------------
-
-===== 2. TERMINAL BALANCING ANALYSIS =====
-   Terminal ID          | Stat (Pa)    | Dyn (Pa)     | Total (Pa)   | Balance (Pa)    | Extra ζ     
-   ---------------------------------------------------------------------------------------------
-   of_01                |    44.84     |    19.57     |    64.41     |      14.99      |    0.766    
-   of_02                |    54.44     |    18.47     |    72.92     |      6.48       |    0.351    
-   of_03                |    39.03     |    20.62     |    59.64     |      19.76      |    0.958    
-   of_04                |    59.84     |    19.57     |    79.40     |      0.00       |    0.000    
-
---------------------------------------------------------------------------------------------------------------
-
-===== 3. DUCT DETAILS (PERFORMANCE) =====
-   Duct Name            | Flow (m³/h)      | Vel. (m/s)     | Lin. Loss (Pa) | Lin. Loss/m (Pa/m)
-   ----------------------------------------------------------------------------------------------
-   main_trunk           |     2200.00      |      3.84      |     0.75     |       0.373       
-   to_junction_A        |     2200.00      |      4.86      |     2.01     |       0.669       
-   office_1             |      550.00      |      4.49      |     2.72     |       1.359       
-   office_2             |      500.00      |      4.34      |     2.66     |       1.330       
-   transit_to_B         |     1150.00      |      4.52      |     2.49     |       0.830       
-   office_3             |      600.00      |      4.63      |     2.76     |       1.381       
-   office_4             |      550.00      |      4.49      |     2.72     |       1.359       
-
---------------------------------------------------------------------------------------------------------------
-
-===== 4. HYDRAULIC AUDIT DETAILS =====
-   Duct Name            | Reynolds     | Regime         | Fric. Lambda     | Sing. Loss (Pa)  | Zeta Tot  
-   -------------------------------------------------------------------------------------------------------
-   main_trunk           |    112523    | Turbulent      |      0.0193      |       0.00       |   0.000   
-   to_junction_A        |    126588    | Turbulent      |      0.0192      |       0.43       |   0.031   
-   office_1             |    53741     | Turbulent      |      0.0210      |      38.94       |   3.269   
-   office_2             |    50213     | Turbulent      |      0.0213      |      48.60       |   4.373   
-   transit_to_B         |    88228     | Turbulent      |      0.0207      |       1.53       |   0.127   
-   office_3             |    57084     | Turbulent      |      0.0207      |      29.07       |   2.298   
-   office_4             |    53741     | Turbulent      |      0.0210      |      49.92       |   4.190   
-
------------------------------------------------------------------------------------------------------------------------------
-
-===== 5. ACOUSTIC NOISE RISK ASSESSMENT =====
-   Duct Name            | Topology Type      | Velocity (m/s) | Noise Lw dB(A)   | Acoustic Status
-   -----------------------------------------------------------------------------------------------
-   main_trunk           | Main Trunk         |      3.84      |      31.20       | OPTIMAL        
-   to_junction_A        | Intermediary       |      4.86      |      35.30       | OPTIMAL        
-   office_1             | Terminal Runout    |      4.49      |      27.90       | OPTIMAL        
-   office_2             | Terminal Runout    |      4.34      |      26.90       | OPTIMAL        
-   transit_to_B         | Intermediary       |      4.52      |      31.20       | OPTIMAL        
-   office_3             | Terminal Runout    |      4.63      |      28.80       | OPTIMAL        
-   office_4             | Terminal Runout    |      4.49      |      27.90       | OPTIMAL        
-
---------------------------------------------------------------------------------------------------------------
-
-
-===== 6. ACOUSTIC SIZING RECOMMENDATIONS =====
-   Duct Name            | Status       | Vmax (m/s)     | Circ. Diam (mm)  | Rect. WxH (mm)    
-   --------------------------------------------------------------------------------------------
-                                   No critical ducts identified                                
-
---------------------------------------------------------------------------------------------------------------
-
-
-===== 7. SOLVER METADATA =====
-   Execution time (s)                 : 0.119
-   Convergence status                 : stable
-   Residual error (m³/s)              : 8.2e-10
-   Tolerance targeted (m³/s)          : 1e-09
-   Iterations performed               : 477
-   Max iterations allowed             : 1000000
-   Timestamp                          : 26/05/2026 19:41:13
-
-==============================================================================================================
-```
+Exécutez le solveur avec les paramètres par défaut ou ajustez la température et l'altitude pour affiner les propriétés de l'air. L'exemple ci-dessous illustre une simulation réalisée dans les conditions standards de Lyon (20°C, 170 m d'altitude).
 
 ### Étape 5 — Fonctionnalités et Génération de documents
-L'API propose trois points d'entrée principaux pour visualiser et exporter vos résultats de calcul aéraulique :
+Une fois le calcul validé, l'API génère instantanément vos documents techniques :
 
-**Visualisation du schéma réseau (`GET /network/schema`) :** Génération automatique et dynamique du schéma technique du réseau. Les schémas sont optimisés pour un rendu net et léger (DPI 100) afin de garantir une génération rapide sur les environnements Cloud.
+**Schéma réseau (`GET /network/schema`) :** Génération automatique du schéma technique du réseau, optimisé (DPI 100) pour garantir une génération rapide sur les environnements Cloud.
 
 <p align="center">
   <img src="docs/Batiment_R+4_Promoteur_X_20260526_194113.png" width="850" alt="Schéma technique du réseau aéraulique généré par l'API">
 </p>
 
-**Rapport PDF complet (`GET /network/report`) :** Un rapport PDF professionnel complet est généré à chaque calcul, incluant tous les tableaux ci-dessus, le schéma du réseau et les recommandations de redimensionnement acoustique.
+**Rapport technique (`GET /network/report`) :** Rapport PDF complet incluant l'audit hydraulique, les pressions, les recommandations acoustiques et le schéma du réseau.
 
 📎 [Exemple de rapport PDF](docs/Batiment_R+4_Promoteur_X_20260526_194113.pdf)
 
-**Export des données JSON (`GET /network/data`) :** Un rapport complet au format JSON contenant toutes les variables d'entrée et les résultats calculés, idéal pour une intégration dans d'autres outils de CAO ou de suivi.
+**Données d'intégration (`GET /network/data`) :** Export structuré au format JSON pour une interopérabilité avec vos outils de CAO ou BIM.
 
 📎 [Exemple de rapport JSON](docs/Batiment_R+4_Promoteur_X_20260526_194113.json)
-
----
-
-## 📁 Structure du Dépôt
-
-```text
-hvac-network-solver/
-│
-├── README.md                       # Documentation complète & exemples
-├── LICENSE                         # Licence MIT
-├── quick_start.py                  # Script de démarrage rapide
-│
-├── docs/
-│   ├── Batiment_R+4_Promoteur_X_20260526_194113.png              # Schéma réseau exemple
-│   ├── Batiment_R+4_Promoteur_X_20260526_194113.pdf              # Rapport PDF exemple
-│   └── Batiment_R+4_Promoteur_X_20260526_194113.json             # Rapport JSON exemple
-│
-└── .gitignore                      # Fichiers exclus du dépôt
-```
 
 ---
 
@@ -371,6 +242,25 @@ pip install requests
 python quick_start.py
 ```
 > 💡 **Note importante :** Ce dépôt public est une interface de démonstration et de documentation. Le moteur de calcul propriétaire est hébergé dans un dépôt privé, synchronisé via un pipeline CI/CD sur Render.
+
+---
+
+## 📁 Structure du Dépôt
+
+```text
+hvac-network-solver/
+│
+├── README.md                       # Documentation complète & exemples
+├── LICENSE                         # Licence MIT
+├── quick_start.py                  # Script de démarrage rapide
+│
+├── docs/
+│   ├── Batiment_R+4_Promoteur_X_20260526_194113.png              # Schéma réseau exemple
+│   ├── Batiment_R+4_Promoteur_X_20260526_194113.pdf              # Rapport PDF exemple
+│   └── Batiment_R+4_Promoteur_X_20260526_194113.json             # Rapport JSON exemple
+│
+└── .gitignore                      # Fichiers exclus du dépôt
+```
 
 ---
 
