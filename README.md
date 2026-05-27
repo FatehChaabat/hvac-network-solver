@@ -389,13 +389,12 @@ Ingénieur en mécanique des fluides et énergétique, spécialisé en modélisa
 ## 📄 Licence
 Ce projet est sous licence **MIT**. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
-<br>
+<br> <br> <br>
 
 ---
-<p align="center"><b>ANNEXES</b></p>
----
 
-<br>
+<h2 align="center">ANNEXES</h2>
+
 
 <a name="duct-sizer"></a>
 ## 🧮 Assistant de Prédimensionnement — `POST /tools/duct-sizer`
