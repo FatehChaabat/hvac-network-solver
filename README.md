@@ -62,40 +62,47 @@ Le moteur transforme la topologie physique du réseau en un système d'équation
 
 Le solveur adapte ses calculs aux conditions réelles de l'installation :
 
-**Propriétés de l'air :** Calcul dynamique de la masse volumique ($\rho$) via la **loi des gaz parfaits** couplée au modèle atmosphérique standard ISA, et de la viscosité dynamique ($\mu$) via l'équation de **Sutherland** — en fonction de la température ($T$) et de l'altitude du site ($z$) :
+**Propriétés de l'air :** Calcul dynamique de la masse volumique ($\rho$) via la **loi des gaz parfaits** couplée au modèle atmosphérique standard ISA (valable jusqu'à 11 000 m), et de la viscosité dynamique ($\mu$) via l'équation de **Sutherland** — en fonction de la température ($T$) et de l'altitude ($z$) du site.
 
 $$\rho = \frac{P_{atm}(z)}{R_{air} \cdot T} \qquad et \qquad \mu = \mu_0 \left(\frac{T}{T_0}\right)^{3/2} \frac{T_0 + S}{T + S}$$
 
-> $P_{atm}(z) = 101325 \cdot (1 - 2.25577 \times 10^{-5} \cdot z)^{5.25588}$ — Modèle ISA standard (valable jusqu'à 11 000 m)
+> * $P_{atm}(z) = 101325 \cdot (1 - 2.25577 \times 10^{-5} \cdot z)^{5.25588}$
 
-<br>
 
-**Friction de haute précision :** Résolution exacte de **Colebrook-White** par **bisection** (convergence garantie, précision $< 10^{-10}$) pour le régime turbulent, et **Poiseuille** ($\lambda = 64/Re$) pour le régime laminaire :
+**Modélisation des pertes de charge :** Le calcul des pertes de charge totales repose sur l'équation de **Darcy-Weisbach**, le coefficient de frottement $\lambda$ est déterminé dynamiquement selon le régime d'écoulement.
 
-$$\Delta P = \left( \lambda \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho \cdot v^2}{2} \qquad et \qquad \frac{1}{\sqrt{\lambda}} = -2\log_{10}\left(\frac{\varepsilon/D_h}{3.7} + \frac{2.51}{Re\sqrt{\lambda}}\right)$$
+$$\Delta P = \left( \lambda \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho \cdot v^2}{2}$$
 
+
+**Friction de haute précision :** Pour le régime turbulent, le solveur garantit une précision élevée ($< 10^{-10}$) par la résolution numérique de l'équation de **Colebrook-White** via une méthode de **bisection** robuste. 
+
+$$\frac{1}{\sqrt{\lambda}} = -2\log_{10}\left(\frac{\varepsilon/D_h}{3.7} + \frac{2.51}{Re\sqrt{\lambda}}\right)$$
+
+En régime laminaire, le modèle applique la relation analytique de **Poiseuille** ($\lambda = 64/Re$), assurant ainsi une continuité et une fiabilité des résultats sur toute la plage des nombres de Reynolds.
 
 ### 2. Résistance Aéraulique & Formulation par Conductance
 
-Le moteur condense les propriétés physiques et géométriques en une **résistance aéraulique** $R$ (Pa·s²/m⁶), réévaluée dynamiquement à chaque itération (analogie Loi d'Ohm non linéaire) :
+Le moteur de calcul synthétise les propriétés géométriques et physiques en une **résistance aéraulique** $R$ (exprimée en Pa·s²/m⁶), réévaluée dynamiquement à chaque itération (analogie avec la loi d'Ohm) :
 
 $$R = \left( \lambda \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \frac{\rho}{2 \cdot A^2} \qquad \Rightarrow \qquad \Delta P = R \cdot Q^2$$
 
-<br>
+Pour garantir la stabilité numérique, le solveur utilise une **conductance aéraulique** $C_d = 1 / \sqrt{R_d}$, qui caractérise la capacité d'un conduit $d$ à acheminer le flux $Q_d$ pour une différence de pression $\Delta P_d$ :
 
-Pour optimiser la stabilité numérique du solveur, la résistance $R_d$ est convertie en **conductance aéraulique** $C_d = 1 / \sqrt{R_d}$, définissant la capacité du conduit $d$ à laisser passer le flux $Q_d$ pour une différence de pression donnée $\Delta P_d$:
+$$Q_d = \text{sign}(\Delta P_d) \cdot C_d \cdot \sqrt{|\Delta P_d|}$$
 
-$$Q_d = \text{sign}(\Delta P_d) \cdot C_d \cdot \sqrt{|\Delta P_d|} \qquad \text{et} \qquad Imb_n = S_n + \sum Q_{d, \text{entrants}} - \sum Q_{d, \text{sortants}}$$
+Le système est régi par **la loi de conservation de la masse aux nœuds** (analogue à la loi des courants de Kirchhoff), où la somme des débits entrants et sortants doit être nulle en chaque point :
 
-  > * **$S_n$** : Contrainte de débit imposée au nœud $n$ (Injection $>0$, Extraction $<0$, Transit $=0$). **$Imb_n$** : Résidu de flux au nœud $n$.
+$$Imb_n = S_n + \sum Q_{d, \text{entrants}} - \sum Q_{d, \text{sortants}}$$
 
-<br>
+  > * **$S_n$** : Contrainte de débit imposée au nœud $n$ (Injection $>0$, Extraction $<0$, Transit $=0$).
+  > * **$Imb_n$** : Résidu de flux (imbalance) exprimant l'écart à la conservation de la masse au nœud $n$.
 
-La correction de pression à chaque nœud $n$ est calculée par **linéarisation de Newton-Raphson** (ajustement itératif) via la conductance totale des conduits $d$ connectés :
+
+La pression nodale est ajustée itérativement via une **linéarisation par la méthode de Newton-Raphson**, basée sur la conductance totale des conduits $d$ connectés au nœud $n$ :
 
 $$P_{n, \text{nouveau}} = P_{n, \text{ancien}} + w \cdot \frac{Imb_n}{\displaystyle\sum_{d \in n} (0.5 \cdot C_d / \sqrt{|\Delta P_d|})}$$
 
-> * **$w$ :** Facteur de relaxation adaptatif ($0.02 \le w \le 0.3$).
+> * **$w$ :** Facteur de relaxation adaptatif ($0.02 \le w \le 0.3$), garantissant la robustesse de la convergence.
 
 
 ### 3. Stratégie de Convergence en Deux Phases
@@ -104,7 +111,7 @@ $$P_{n, \text{nouveau}} = P_{n, \text{ancien}} + w \cdot \frac{Imb_n}{\displayst
 |---|---|---|
 | **Phase 1** — Convergence primaire | Démarrage | Frottement linéaire + singularités constantes uniquement |
 | **Phase 2** — Singularités dynamiques | $Imb < 10^{-3}$ m³/s | Activation tés + transitions convergent/divergent |
-| **Convergence finale** | $Imb < 10^{-9}$ m³/s | Arrêt — résidu ≈ 0.0036 l/h |
+| **Convergence finale** | $Imb < 10^{-9}$ m³/s | Arrêt — résidu ≈ 3.6 mL/h |
 
 
 ### 4. Calcul Physique des Singularités
@@ -134,9 +141,24 @@ Valable en **soufflage** (entrée libre, sortie raccordée) et en **extraction**
 
 $$\dot{W}_{fan,i} = \frac{\Delta P_{tot,i} \cdot Q_i}{\eta_i} \qquad \text{et} \qquad \dot{W}_{total} = \sum_i \dot{W}_{fan,i}$$
 
-Le coût annuel estimé est dérivé du temps de service annuel ($T_{annuel}$ en heures) et du coût unitaire de l'énergie ($C_{kWh}$) :
+Le **coût annuel** estimé est dérivé du temps de service annuel ($T_{annuel}$ en heures) et du coût unitaire de l'énergie ($C_{kWh}$) :
 
 $$\boxed{OPEX = \dot{W}_{total} \cdot T_{annuel} \cdot C_{kWh} \cdot 10^{-3}}$$
+
+### 6. Analyse Acoustique Prédictive
+
+Pour garantir le confort acoustique des installations, le solveur intègre une évaluation dynamique du niveau de puissance acoustique régénérée ($L_w$) basée sur les méthodologies de l'**ASHRAE**.
+
+**Modélisation :** Le niveau sonore est corrélé à la vitesse de l'air ($v$) et à la section du conduit ($A$) via la relation empirique :
+    
+$$L_w \approx 10 + 50\log_{10}(|v|) + 10\log_{10}(A)$$
+
+**Diagnostic adaptatif :** Le solveur classifie automatiquement l'état de chaque conduit selon sa fonction (Terminal, Intermédiaire ou Principal) en appliquant des seuils de confort acoustique différenciés.
+
+**Assistance à la conception :** En cas de dépassement des seuils critiques (statut `CRITICAL`), l'algorithme calcule automatiquement les dimensions géométriques optimales — diamètre circulaire ou dimensions rectangulaires — pour réduire la vitesse de l'air sous les limites admissibles, minimisant ainsi la génération de bruit aéraulique.
+
+> *L'approche permet de passer d'une simple vérification normative à une **optimisation prescriptive**, où le solveur propose des solutions de redimensionnement immédiates pour assurer la conformité du projet.*
+
 
 ---
 
