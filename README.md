@@ -98,11 +98,15 @@ $$Imb_n = S_n + \sum Q_{d, \text{entrants}} - \sum Q_{d, \text{sortants}}$$
   > * **$Imb_n$** : Résidu de flux (imbalance) exprimant l'écart à la conservation de la masse au nœud $n$.
 
 
-La pression nodale est ajustée itérativement via une **linéarisation par la méthode de Newton-Raphson**, basée sur la conductance totale des conduits $d$ connectés au nœud $n$ :
+La pression nodale est ajustée itérativement via une **linéarisation locale de la conductance** 
+(méthode de Gauss-Seidel non linéaire), basée sur la conductance totale des conduits $d$ 
+connectés au nœud $n$ :
 
 $$P_{n, \text{nouveau}} = P_{n, \text{ancien}} + w \cdot \frac{Imb_n}{\displaystyle\sum_{d \in n} (0.5 \cdot C_d / \sqrt{|\Delta P_d|})}$$
 
-> * **$w$ :** Facteur de relaxation adaptatif ($0.02 \le w \le 0.3$), garantissant la robustesse de la convergence.
+> * **$w$ :** Facteur de relaxation adaptatif ($0.02 \le w \le 0.3$), ajusté dynamiquement 
+> selon l'évolution de l'imbalance — réduction progressive si stagnation, reprise si progression.
+> * **Convergence :** Le processus itère jusqu'à ce que $Imb_{max} < 10^{-9}$ m³/s (≈ 3.6 mL/h).
 
 
 ### 3. Stratégie de Convergence en Deux Phases
@@ -131,11 +135,15 @@ Les ζ sont convertis depuis la vitesse du tronc commun vers la vitesse locale d
 
 **Identification par Ventilateur (Dijkstra)** : Pour chaque ventilateur, l'algorithme de **Dijkstra** identifie le circuit le plus résistant parmi toutes ses bouches terminales. Les pertes statiques sont calculées par sommation directe sur le chemin physique, intégrant frottements et singularités.
 
-**Formule de Bernoulli Généralisée** : Conforme à la classification **Almeco/AMCA** (méthodes B et C) :
+**Dimensionnement par Ventilateur** : La pression totale de dimensionnement est calculée 
+par **sommation directe** des pertes sur le chemin critique :
 
-$$\boxed{\Delta P_{ventilateur} = \sum \Delta P_{pertes} + \frac{\rho\ \cdot V_{bouche}^2}{2}}$$
+$$\Delta P_{ventilateur} = \sum \Delta P_{pertes}$$
 
-Valable en **soufflage** (entrée libre, sortie raccordée) et en **extraction** (entrée raccordée, sortie libre) — la pression dynamique d'aspiration est implicitement gérée par la courbe fabricant dans les deux cas.
+Les accessoires terminaux (grilles, diffuseurs, bouches) étant déclarés dans `coeffs` 
+du dernier conduit, leur ζ capture l'intégralité des pertes — incluant la dissipation 
+cinétique à la sortie. Cette approche est conforme aux standards Idelchik et Almeco/AMCA 
+(méthodes B/C), valable en soufflage et en extraction.
 
 **Dimensionnement Individuel Multi-Ventilateurs** : La puissance absorbée est calculée pour chaque ventilateur via son rendement ($\eta_i$) :
 
