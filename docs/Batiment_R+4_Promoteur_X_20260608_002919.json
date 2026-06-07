@@ -3,7 +3,7 @@
         "project_name": "Batiment_R+4",
         "client_name": "Promoteur_X",
         "site_location": "Lyon_69",
-        "export_date": "26/05/2026 19:41:48",
+        "export_date": "08/06/2026 00:30:08",
         "status": "Computed",
         "calculation_conditions": {
             "air_temperature_c": 20.0,
@@ -16,50 +16,50 @@
         "design_delivery_points": {
             "fan_01": {
                 "target_flow_m3h": 2200.0,
-                "pressure_status": "Initial Value (Pending Calculation)",
+                "pressure_status": "Calculated Result",
                 "node_static_pressure_pa": 0.0,
                 "node_type": "Source/Fan"
             },
             "jn_01": {
                 "target_flow_m3h": 0.0,
-                "pressure_status": "Initial Value (Pending Calculation)",
-                "node_static_pressure_pa": 0.0,
+                "pressure_status": "Calculated Result",
+                "node_static_pressure_pa": -0.75,
                 "node_type": "Junction"
             },
             "jn_a": {
                 "target_flow_m3h": 0.0,
-                "pressure_status": "Initial Value (Pending Calculation)",
-                "node_static_pressure_pa": 0.0,
+                "pressure_status": "Calculated Result",
+                "node_static_pressure_pa": -2.98,
                 "node_type": "Junction"
             },
             "of_01": {
                 "target_flow_m3h": -550.0,
-                "pressure_status": "Initial Value (Pending Calculation)",
-                "node_static_pressure_pa": 0.0,
+                "pressure_status": "Calculated Result",
+                "node_static_pressure_pa": -32.46,
                 "node_type": "Terminal/Diffuser"
             },
             "of_02": {
                 "target_flow_m3h": -500.0,
-                "pressure_status": "Initial Value (Pending Calculation)",
-                "node_static_pressure_pa": 0.0,
+                "pressure_status": "Calculated Result",
+                "node_static_pressure_pa": -31.72,
                 "node_type": "Terminal/Diffuser"
             },
             "jn_b": {
                 "target_flow_m3h": 0.0,
-                "pressure_status": "Initial Value (Pending Calculation)",
-                "node_static_pressure_pa": 0.0,
+                "pressure_status": "Calculated Result",
+                "node_static_pressure_pa": -13.07,
                 "node_type": "Junction"
             },
             "of_03": {
                 "target_flow_m3h": -600.0,
-                "pressure_status": "Initial Value (Pending Calculation)",
-                "node_static_pressure_pa": 0.0,
+                "pressure_status": "Calculated Result",
+                "node_static_pressure_pa": -36.03,
                 "node_type": "Terminal/Diffuser"
             },
             "of_04": {
                 "target_flow_m3h": -550.0,
-                "pressure_status": "Initial Value (Pending Calculation)",
-                "node_static_pressure_pa": 0.0,
+                "pressure_status": "Calculated Result",
+                "node_static_pressure_pa": -35.87,
                 "node_type": "Terminal/Diffuser"
             }
         },
@@ -74,10 +74,12 @@
                 "height_mm": null,
                 "equivalent_diameter_mm": 450.0,
                 "material_roughness_mm": 0.15,
+                "base_zeta": 0.0,
+                "user_zeta": null,
                 "total_zeta_coefficient": 0.0,
-                "flow_rate_m3h": 0.0,
-                "air_velocity_ms": 0.0,
-                "total_pressure_drop_pa": 0.0
+                "flow_rate_m3h": 2200.0,
+                "air_velocity_ms": 3.84,
+                "total_pressure_drop_pa": 0.75
             },
             {
                 "segment_id": "to_junction_A",
@@ -89,10 +91,12 @@
                 "height_mm": null,
                 "equivalent_diameter_mm": 400.0,
                 "material_roughness_mm": 0.15,
-                "total_zeta_coefficient": 0.03,
-                "flow_rate_m3h": 0.0,
-                "air_velocity_ms": 0.0,
-                "total_pressure_drop_pa": 0.0
+                "base_zeta": 0.0,
+                "user_zeta": null,
+                "total_zeta_coefficient": 0.02,
+                "flow_rate_m3h": 2200.0,
+                "air_velocity_ms": 4.86,
+                "total_pressure_drop_pa": 2.23
             },
             {
                 "segment_id": "office_1",
@@ -104,10 +108,12 @@
                 "height_mm": 170.0,
                 "equivalent_diameter_mm": 184.0,
                 "material_roughness_mm": 0.02,
-                "total_zeta_coefficient": 3.27,
-                "flow_rate_m3h": 0.0,
-                "air_velocity_ms": 0.0,
-                "total_pressure_drop_pa": 0.0
+                "base_zeta": 0.6,
+                "user_zeta": null,
+                "total_zeta_coefficient": 2.25,
+                "flow_rate_m3h": 550.0,
+                "air_velocity_ms": 4.49,
+                "total_pressure_drop_pa": 29.48
             },
             {
                 "segment_id": "office_2",
@@ -119,10 +125,12 @@
                 "height_mm": 160.0,
                 "equivalent_diameter_mm": 178.0,
                 "material_roughness_mm": 0.02,
-                "total_zeta_coefficient": 4.37,
-                "flow_rate_m3h": 0.0,
-                "air_velocity_ms": 0.0,
-                "total_pressure_drop_pa": 0.0
+                "base_zeta": 0.6,
+                "user_zeta": null,
+                "total_zeta_coefficient": 2.35,
+                "flow_rate_m3h": 500.0,
+                "air_velocity_ms": 4.34,
+                "total_pressure_drop_pa": 28.75
             },
             {
                 "segment_id": "transit_to_B",
@@ -134,10 +142,12 @@
                 "height_mm": null,
                 "equivalent_diameter_mm": 300.0,
                 "material_roughness_mm": 0.15,
-                "total_zeta_coefficient": 0.13,
-                "flow_rate_m3h": 0.0,
-                "air_velocity_ms": 0.0,
-                "total_pressure_drop_pa": 0.0
+                "base_zeta": 0.0,
+                "user_zeta": null,
+                "total_zeta_coefficient": 0.63,
+                "flow_rate_m3h": 1150.0,
+                "air_velocity_ms": 4.52,
+                "total_pressure_drop_pa": 10.09
             },
             {
                 "segment_id": "office_3",
@@ -149,10 +159,12 @@
                 "height_mm": 180.0,
                 "equivalent_diameter_mm": 189.0,
                 "material_roughness_mm": 0.02,
-                "total_zeta_coefficient": 2.3,
-                "flow_rate_m3h": 0.0,
-                "air_velocity_ms": 0.0,
-                "total_pressure_drop_pa": 0.0
+                "base_zeta": 0.6,
+                "user_zeta": null,
+                "total_zeta_coefficient": 1.6,
+                "flow_rate_m3h": 600.0,
+                "air_velocity_ms": 4.63,
+                "total_pressure_drop_pa": 22.97
             },
             {
                 "segment_id": "office_4",
@@ -164,10 +176,12 @@
                 "height_mm": 170.0,
                 "equivalent_diameter_mm": 184.0,
                 "material_roughness_mm": 0.02,
-                "total_zeta_coefficient": 4.19,
-                "flow_rate_m3h": 0.0,
-                "air_velocity_ms": 0.0,
-                "total_pressure_drop_pa": 0.0
+                "base_zeta": 0.6,
+                "user_zeta": null,
+                "total_zeta_coefficient": 1.69,
+                "flow_rate_m3h": 550.0,
+                "air_velocity_ms": 4.49,
+                "total_pressure_drop_pa": 22.8
             }
         ]
     },
@@ -180,22 +194,20 @@
                 "description": "Fresh air supply",
                 "nominal_target_efficiency": 0.75,
                 "fan_flow_m3h": 2200.0,
-                "critical_node": "of_04",
-                "cumulative_static_pa": 59.84,
-                "exit_dynamic_pa": 19.57,
-                "total_pressure_pa": 79.4,
-                "shaft_input_power_w": 64.7
+                "critical_node": "of_03",
+                "total_pressure_pa": 36.03,
+                "shaft_input_power_w": 29.36
             }
         },
         "operating_cost_projections": {
-            "total_shaft_input_power_w": 64.7,
+            "total_shaft_input_power_w": 29.36,
             "service_profile_assumptions": {
                 "daily_operating_cycle_h": 10.0,
                 "annual_operating_cycle_days": 250
             },
-            "annual_energy_usage_kwh": 161.75,
+            "annual_energy_usage_kwh": 73.4,
             "unit_energy_cost_euro_kwh": 0.25,
-            "estimated_annual_opex_euro": 40.44
+            "estimated_annual_opex_euro": 18.35
         }
     },
     "terminal_balancing_analysis": [
@@ -203,41 +215,37 @@
             "fan_id": "fan_01",
             "fan_label": "Main_Fan",
             "terminal_node": "of_01",
-            "cumulative_static_pa": 44.84,
-            "dynamic_pressure_pa": 19.57,
-            "total_pressure_pa": 64.41,
-            "required_balancing_pressure_pa": 14.99,
-            "required_balancing_zeta": 0.766
+            "total_pressure_pa": 32.46,
+            "required_balancing_pressure_pa": 3.57,
+            "exit_dyn_pressure_pa": 19.57,
+            "required_balancing_zeta": 0.183
         },
         {
             "fan_id": "fan_01",
             "fan_label": "Main_Fan",
             "terminal_node": "of_02",
-            "cumulative_static_pa": 54.44,
-            "dynamic_pressure_pa": 18.47,
-            "total_pressure_pa": 72.92,
-            "required_balancing_pressure_pa": 6.48,
-            "required_balancing_zeta": 0.351
+            "total_pressure_pa": 31.72,
+            "required_balancing_pressure_pa": 4.31,
+            "exit_dyn_pressure_pa": 18.47,
+            "required_balancing_zeta": 0.233
         },
         {
             "fan_id": "fan_01",
             "fan_label": "Main_Fan",
             "terminal_node": "of_03",
-            "cumulative_static_pa": 39.03,
-            "dynamic_pressure_pa": 20.62,
-            "total_pressure_pa": 59.64,
-            "required_balancing_pressure_pa": 19.76,
-            "required_balancing_zeta": 0.958
+            "total_pressure_pa": 36.03,
+            "required_balancing_pressure_pa": 0.0,
+            "exit_dyn_pressure_pa": 20.62,
+            "required_balancing_zeta": 0.0
         },
         {
             "fan_id": "fan_01",
             "fan_label": "Main_Fan",
             "terminal_node": "of_04",
-            "cumulative_static_pa": 59.84,
-            "dynamic_pressure_pa": 19.57,
-            "total_pressure_pa": 79.4,
-            "required_balancing_pressure_pa": 0.0,
-            "required_balancing_zeta": 0.0
+            "total_pressure_pa": 35.87,
+            "required_balancing_pressure_pa": 0.16,
+            "exit_dyn_pressure_pa": 19.57,
+            "required_balancing_zeta": 0.008
         }
     ],
     "duct_details": [
@@ -281,8 +289,8 @@
                 "reynolds": 126588,
                 "regime": "Turbulent",
                 "friction_lambda": 0.0192,
-                "singular_pressure_loss_pa": 0.43,
-                "total_zeta": 0.031
+                "singular_pressure_loss_pa": 0.23,
+                "total_zeta": 0.016
             }
         },
         {
@@ -303,8 +311,8 @@
                 "reynolds": 53741,
                 "regime": "Turbulent",
                 "friction_lambda": 0.021,
-                "singular_pressure_loss_pa": 38.94,
-                "total_zeta": 3.269
+                "singular_pressure_loss_pa": 26.76,
+                "total_zeta": 2.246
             }
         },
         {
@@ -325,8 +333,8 @@
                 "reynolds": 50213,
                 "regime": "Turbulent",
                 "friction_lambda": 0.0213,
-                "singular_pressure_loss_pa": 48.6,
-                "total_zeta": 4.373
+                "singular_pressure_loss_pa": 26.09,
+                "total_zeta": 2.347
             }
         },
         {
@@ -347,8 +355,8 @@
                 "reynolds": 88228,
                 "regime": "Turbulent",
                 "friction_lambda": 0.0207,
-                "singular_pressure_loss_pa": 1.53,
-                "total_zeta": 0.127
+                "singular_pressure_loss_pa": 7.6,
+                "total_zeta": 0.63
             }
         },
         {
@@ -369,8 +377,8 @@
                 "reynolds": 57084,
                 "regime": "Turbulent",
                 "friction_lambda": 0.0207,
-                "singular_pressure_loss_pa": 29.07,
-                "total_zeta": 2.298
+                "singular_pressure_loss_pa": 20.2,
+                "total_zeta": 1.598
             }
         },
         {
@@ -391,18 +399,18 @@
                 "reynolds": 53741,
                 "regime": "Turbulent",
                 "friction_lambda": 0.021,
-                "singular_pressure_loss_pa": 49.92,
-                "total_zeta": 4.19
+                "singular_pressure_loss_pa": 20.08,
+                "total_zeta": 1.686
             }
         }
     ],
     "solver_performance": {
-        "execution_time_sec": 0.119,
+        "execution_time_sec": 0.188,
         "convergence_status": "stable",
-        "residual_error_m3s": 8.2e-10,
+        "residual_error_m3s": 8.5e-10,
         "tolerance_targeted_m3s": 1e-09,
-        "iterations_performed": 477,
+        "iterations_performed": 622,
         "max_iterations_allowed": 1000000,
-        "timestamp": "26/05/2026 19:41:13"
+        "timestamp": "08/06/2026 00:29:19"
     }
 }
