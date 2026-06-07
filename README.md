@@ -72,8 +72,8 @@ $$\Delta P = \left( \lambda \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \fra
  
 | Phase | Déclenchement | Contenu |
 |---|---|---|
-| **Phase 1** — Convergence primaire | Démarrage | Frottement linéaire + singularités constantes |
-| **Phase 2** — Singularités dynamiques | $Imb < 10^{-3}$ m³/s | Activation tés + transitions dynamiques |
+| **Phase 1** — Convergence primaire | Démarrage | Frottement linéaire + singularités constantes (coeffs déclarés) |
+| **Phase 2** — Singularités dynamiques | $Imb < 10^{-3}$ m³/s | ζ tés et transitions **recalculés à chaque itération** sur débits stabilisés |
 | **Convergence finale** | $Imb < 10^{-9}$ m³/s | Arrêt — résidu ≈ 3.6 mL/h sur l'ensemble du réseau |
  
 Cette stratégie en deux phases évite les oscillations dues aux ζ dynamiques calculés sur des débits encore instables.
@@ -127,7 +127,7 @@ L'API est structurée autour des endpoints suivants pour piloter le solveur, de 
 | `GET` | `/network/schema` | Schéma du réseau | PNG |
 | `GET` | `/network/report` | Rapport technique complet | PDF |
 | `GET` | `/network/data` | Export données | JSON |
-| `GET` | `/network/visualizer` | **Visualiseur interactif** — exploration du réseau post-calcul | HTML |
+| `GET` | `/network/visualizer` | **Visualiseur interactif** — Exploration et modification post-calcul | HTML |
 | `GET` | `/catalog/zeta` | Catalogue des coefficients singuliers | JSON |
 | `POST` | `/tools/duct-sizer` | Prédimensionnement des conduits | JSON |
 
@@ -142,10 +142,7 @@ Accédez à **[https://hvac-api-wtuu.onrender.com/docs](https://hvac-api-wtuu.on
 
 ### Étape 2 — Informations Projet *(optionnel)*
 `POST /project/info` — Définissez les métadonnées pour les rapports.
-
-```json
-{ "project": "Batiment_R+4", "client": "Promoteur_X", "site": "Lyon_69" }
-```
+Nom du projet : Batiment_R+4 | Client : Promoteur_X | Site : Lyon_69
 
 ### Étape 3 — Import du réseau
 `POST /network/import-project` — Configurez nœuds, conduits et ventilateurs en un seul appel :
@@ -188,16 +185,16 @@ Accédez à **[https://hvac-api-wtuu.onrender.com/docs](https://hvac-api-wtuu.on
 **Schéma réseau** (`GET /network/schema`) :
 
 <p align="center">
-  <img src="docs/Batiment_R+4_Promoteur_X_20260526_194113.png" width="850" alt="Schéma technique du réseau aéraulique">
+  <img src="docs/Batiment_R+4_Promoteur_X_20260608_002919.png" width="850" alt="Schéma technique du réseau aéraulique">
 </p>
 
 **Rapport PDF** (`GET /network/report`) — Audit hydraulique, pressions, acoustique, schéma :
 
-📎 [Exemple de rapport PDF](docs/Batiment_R+4_Promoteur_X_20260526_194113.pdf)
+📎 [Exemple de rapport PDF](docs/Batiment_R+4_Promoteur_X_20260608_002919.pdf)
 
 **Données JSON** (`GET /network/data`) — Export structuré pour intégration CAO/BIM :
 
-📎 [Exemple de rapport JSON](docs/Batiment_R+4_Promoteur_X_20260526_194113.json)
+📎 [Exemple de rapport JSON](docs/Batiment_R+4_Promoteur_X_20260608_002919.json)
 
 **Visualiseur interactif (`GET /network/visualizer`) — Exploration et modification post-calcul :**
 
@@ -455,7 +452,7 @@ Calcul autonome des dimensions optimales de gaines à partir du **débit** et d'
 ### Conduit circulaire
  
 ```
-GET /suggest?q=1200&v=4.5&shape=circular
+POST /tools/duct-sizer?q=1200&v=4.5&shape=circular
 ```
  
 ```json
@@ -475,7 +472,7 @@ GET /suggest?q=1200&v=4.5&shape=circular
 ### Conduit rectangulaire
  
 ```
-GET /suggest?q=1200&v=4.5&shape=rectangular
+POST /tools/duct-sizer?q=1200&v=4.5&shape=rectangular
 ```
  
 ```json
