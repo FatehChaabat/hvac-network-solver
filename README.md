@@ -32,14 +32,14 @@ L'API est déployée sur Render et accessible sans installation :
 |---|---|
 | **Physique rigoureuse** | Darcy-Weisbach, Colebrook-White (bisection), Sutherland, Idelchik, Borda-Carnot, Bernoulli généralisé |
 | **Solveur nodal non linéaire** | Équilibrage automatique des débits par l'approche de Gauss-Seidel avec facteur de relaxation adaptatif anti-oscillation |
-| **Singularités avancées** | Tés dynamiques et transitions convergent/divergent détectés automatiquement selon le flux réel |
+| **Singularités avancées** | Tés dynamiques et transitions convergent/divergent détectés automatiquement selon le flux réel et activables indépendamment |
 | **Précision industrielle** | Résidu $< 10^{-9}$ m³/s — conservation des masses stricte (Kirchhoff) |
 | **Multi-ventilateurs** | Dimensionnement individuel par ventilateur, circuit critique par Dijkstra, table d'équilibrage par terminal |
 | **Analyse acoustique** | Diagnostic adaptatif par type de conduit + recommandations de redimensionnement (ASHRAE) |
 | **Analyse énergétique** | Puissance absorbée (méthodes B/C AMCA/Almeco) + OPEX annuel estimé |
 | **Rapports PDF** | Bilan aéraulique, audit hydraulique, analyse acoustique, schéma réseau — générés automatiquement |
 | **Intégration** | API REST scalable, export JSON structuré pour CAO, BIM, jumeaux numériques |
-| **Visualiseur interactif** | Exploration post-calcul via Vis-Network — 4 onglets (Détails/Ventilateurs/Équilibrage/Projet), mode édition par conduit avec recalcul instantané, recherche filtrante, soufflage et extraction, mono et multi-ventilateurs |
+| **Visualiseur interactif** | Exploration post-calcul via Vis-Network — 4 onglets (Détails/Ventilateurs/Équilibrage/Projet), mode édition par conduit avec recalcul instantané, réinitialisation indépendante par champ, reset conduit complet et reset global, soufflage et extraction, mono et multi-ventilateurs |
 | **Prédimensionnement** | Module autonome pour le calcul des gaines circulaires et rectangulaires selon débit et vitesse cible *(Voir [l'Annexe Technique](#annexe-02--assistant-de-prédimensionnement))* |
 
 
@@ -73,7 +73,7 @@ $$\Delta P = \left( \lambda \cdot \frac{L}{D_h} + \Sigma\zeta \right) \cdot \fra
 | Phase | Déclenchement | Contenu |
 |---|---|---|
 | **Phase 1** — Convergence primaire | Démarrage | Frottement linéaire + singularités constantes (coeffs déclarés) |
-| **Phase 2** — Singularités dynamiques | $Imb < 10^{-3}$ m³/s | ζ tés et transitions **recalculés à chaque itération** sur débits stabilisés |
+| **Phase 2** — Singularités dynamiques | $Imb < 10^{-3}$ m³/s | ζ tés et transitions **recalculés à chaque itération** sur débits stabilisés — activables indépendamment via `Calcul_Tees_Dynamiques` et `Calcul_Transitions_Dynamiques` |
 | **Convergence finale** | $Imb < 10^{-9}$ m³/s | Arrêt — résidu ≈ 3.6 mL/h sur l'ensemble du réseau |
  
 Cette stratégie en deux phases évite les oscillations dues aux ζ dynamiques calculés sur des débits encore instables.
@@ -81,13 +81,13 @@ Cette stratégie en deux phases évite les oscillations dues aux ζ dynamiques c
 
 ### Singularités physiques
 
-**Transitions Convergent/Divergent (Idelchik Ch.5)** — appliquées uniquement aux jonctions à 2 conduits. Le type de transition est détecté automatiquement selon le sens réel du flux (soufflage ou extraction). Le ζ est rapporté à la petite section (référence Idelchik) :
-- **Convergent** : $\zeta = \zeta_{fr} + \zeta_{loc}$ (frottement Idelchik 5.6 + perte locale 5.23)
-- **Divergent** : $\zeta = k(\alpha) \cdot (1-\beta)^2$ (Borda-Carnot pondéré, Idelchik/Miller)
+**Transitions Convergent/Divergent (Idelchik Ch.5)** — appliquées aux jonctions simples (2 conduits), sections réelles utilisées pour le ratio β (circulaire ou rectangulaire). Convention : `slope_degrees` = angle total du cône (ex: 30° → demi-angle Idelchik α = 15°). Seuil élargissement brusque : α ≥ 40° (Borda-Carnot exact).
+- **Convergent** : $\zeta = \zeta_{fr} + \zeta_{loc}$ (Idelchik 5.6 + 5.23)
+- **Divergent** : $\zeta = k(\alpha) \cdot (1-\beta)^2$ avec $k$ interpolé Idelchik/Miller
 
-**Tés Dynamiques (Idelchik Ch.7)** — le type de jonction (division/confluence) est détecté localement selon la direction réelle du flux dans le tronc commun, indépendamment du mode global soufflage/extraction :
-- **Division** : $\zeta_b = 1 + v_r^2 - 2x$ ; $\zeta_s = 0.4(1-x)^2$
-- **Confluence** : $\zeta_b = 1 + v_r^2 - 2(1-x)$ ; $\zeta_s = 0.1(1-x)^2$
+**Tés Dynamiques (Idelchik Ch.7)** — détection locale division/confluence selon direction réelle du flux. Les ζ sont indexés sur la vitesse du tronc commun puis convertis via (v_commun/v_local)² :
+- **Division** : $\zeta_b = 1 + v_r^2 - 2x$ ; $\zeta_s = 1-(1-x)^2-0.8x^2$ (Idelchik 7-22)
+- **Confluence** : $\zeta_b = 1 + v_r^2 - 2(1-x)$ ; $\zeta_s = 0.9(1-x)^2$ (Idelchik 7-29)
 
 Les ζ sont convertis depuis la vitesse du tronc commun vers la vitesse locale de chaque conduit via le rapport $\left(\frac{v_{commun}}{v_{local}}\right)^2$. Les **ζ négatifs** (gain d'inertie) sont isolés et appliqués en post-traitement sans déstabiliser le solveur.
 
@@ -123,7 +123,7 @@ L'API est structurée autour des endpoints suivants pour piloter le solveur, de 
 | `POST` | `/network/nodes` | Configuration des nœuds | JSON |
 | `POST` | `/network/ducts` | Définition des conduits | JSON |
 | `POST` | `/network/fans` | Configuration des ventilateurs | JSON |
-| `POST` | `/network/calculate` | **Solveur** — calcul complet | JSON |
+| `POST` | `/network/calculate` | **Solveur** — calcul complet avec contrôle indépendant de paramètres de simulation | JSON |
 | `GET` | `/network/schema` | Schéma du réseau | PNG |
 | `GET` | `/network/report` | Rapport technique complet | PDF |
 | `GET` | `/network/data` | Export données | JSON |
@@ -161,12 +161,12 @@ Nom du projet : Batiment_R+4 | Client : Promoteur_X | Site : Lyon_69
   ],
   "edges": [
     { "name": "main_trunk", "n1": "FAN_01", "n2": "JN_01", "L": 2.0, "D": 0.45, "epsilon": 0.15, "coeffs": [0, ""], "is_branch": false },
-    { "name": "to_junction_A", "n1": "JN_01", "n2": "JN_A", "L": 3.0, "D": 0.40, "epsilon": 0.15, "coeffs": [0, ""], "slope_degrees": 15, "is_branch": false },
-    { "name": "office_1", "n1": "JN_A", "n2": "OF_01", "L": 2.0, "W": 0.2, "H": 0.17, "epsilon": 0.02, "coeffs": ["sortie_conduit_libre"], "is_branch": true },
-    { "name": "office_2", "n1": "JN_A", "n2": "OF_02", "L": 2.0, "W": 0.2, "H": 0.16, "epsilon": 0.02, "coeffs": ["sortie_conduit_libre"], "is_branch": true },
+    { "name": "to_junction_A", "n1": "JN_01", "n2": "JN_A", "L": 3.0, "D": 0.40, "epsilon": 0.15, "coeffs": [0, ""], "slope_degrees": 30, "is_branch": false },
+    { "name": "office_1", "n1": "JN_A", "n2": "OF_01", "L": 2.0, "W": 0.2, "H": 0.17, "epsilon": 0.02, "coeffs": ["sortie_diffuseur_libre"], "is_branch": true },
+    { "name": "office_2", "n1": "JN_A", "n2": "OF_02", "L": 2.0, "W": 0.2, "H": 0.16, "epsilon": 0.02, "coeffs": ["sortie_diffuseur_libre"], "is_branch": true },
     { "name": "transit_to_B", "n1": "JN_A", "n2": "JN_B", "L": 3.0, "D": 0.30, "epsilon": 0.15, "coeffs": [0, ""], "is_branch": false },
-    { "name": "office_3", "n1": "JN_B", "n2": "OF_03", "L": 2.0, "W": 0.2, "H": 0.18, "epsilon": 0.02, "coeffs": ["sortie_conduit_libre"], "is_branch": true },
-    { "name": "office_4", "n1": "JN_B", "n2": "OF_04", "L": 2.0, "W": 0.2, "H": 0.17, "epsilon": 0.02, "coeffs": [ "sortie_conduit_libre"], "is_branch": true }
+    { "name": "office_3", "n1": "JN_B", "n2": "OF_03", "L": 2.0, "W": 0.2, "H": 0.18, "epsilon": 0.02, "coeffs": ["sortie_diffuseur_libre"], "is_branch": true },
+    { "name": "office_4", "n1": "JN_B", "n2": "OF_04", "L": 2.0, "W": 0.2, "H": 0.17, "epsilon": 0.02, "coeffs": [ "sortie_diffuseur_libre"], "is_branch": true }
   ],
   "fans": [
     { "name": "Main_Fan", "node_name": "FAN_01", "rendement": 0.75, "description": "Fresh air supply" }
@@ -185,16 +185,16 @@ Nom du projet : Batiment_R+4 | Client : Promoteur_X | Site : Lyon_69
 **Schéma réseau** (`GET /network/schema`) :
 
 <p align="center">
-  <img src="docs/Batiment_R+4_Promoteur_X_20260608_002919.png" width="850" alt="Schéma technique du réseau aéraulique">
+  <img src="docs/Batiment_R+4_Promoteur_X_20260609_093030.png" width="850" alt="Schéma technique du réseau aéraulique">
 </p>
 
 **Rapport PDF** (`GET /network/report`) — Audit hydraulique, pressions, acoustique, schéma :
 
-📎 [Exemple de rapport PDF](docs/Batiment_R+4_Promoteur_X_20260608_002919.pdf)
+📎 [Exemple de rapport PDF](docs/Batiment_R+4_Promoteur_X_20260609_093030.pdf)
 
 **Données JSON** (`GET /network/data`) — Export structuré pour intégration CAO/BIM :
 
-📎 [Exemple de rapport JSON](docs/Batiment_R+4_Promoteur_X_20260608_002919.json)
+📎 [Exemple de rapport JSON](docs/Batiment_R+4_Promoteur_X_20260609_093030.json)
 
 **Visualiseur interactif (`GET /network/visualizer`) — Exploration et modification post-calcul :**
 
@@ -202,7 +202,7 @@ Nom du projet : Batiment_R+4 | Client : Promoteur_X | Site : Lyon_69
   <img src="docs/visualizer_demo.png" width="850" alt="Visualiseur interactif du réseau aéraulique HVAC">
 </p>
 
-Interface web complète basée sur Vis-Network. Quatre onglets : **Détails**, **Ventilateurs**, **Équilibrage** (K-Factor par terminal), **Projet** (métadonnées + conditions de calcul). Cliquez sur un conduit pour inspecter ses propriétés ou basculer en **mode édition** — modifiez Ø, L, rugosité ou coefficients ζ et cliquez **Calculer** pour un recalcul instantané sans rechargement. Fonctionne en soufflage et extraction, mono et multi-ventilateurs.
+Interface web complète basée sur Vis-Network. Quatre onglets : **Détails**, **Ventilateurs**, **Équilibrage** (K-Factor par terminal), **Projet** (métadonnées + conditions de calcul). Cliquez sur un conduit pour inspecter ses propriétés ou basculer en **mode édition** — modifiez Ø, L, rugosité ou coefficients ζ et cliquez **▶ Calculer** pour un recalcul instantané. Boutons ↺ individuels pour réinitialiser chaque paramètre indépendamment, **↺ Reset conduit** pour restaurer l'ensemble du conduit, et **↺ Tout réinitialiser** pour restaurer tous les conduits à leurs valeurs initiales de simulation. Fonctionne en soufflage et extraction, mono et multi-ventilateurs.
 
 ---
 
@@ -234,6 +234,7 @@ hvac-network-solver/
 ├── quick_start.py                                        # Script de démarrage rapide
 │
 ├── docs/
+|   ├── visualizer_demo.png                               # Capture d'écran visualiseur interactif
 │   ├── Batiment_R+4_Promoteur_X_20260526_194113.png      # Schéma réseau exemple
 │   ├── Batiment_R+4_Promoteur_X_20260526_194113.pdf      # Rapport PDF exemple
 │   └── Batiment_R+4_Promoteur_X_20260526_194113.json     # Rapport JSON exemple
