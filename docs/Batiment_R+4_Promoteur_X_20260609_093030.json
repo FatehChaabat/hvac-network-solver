@@ -3,7 +3,7 @@
         "project_name": "Batiment_R+4",
         "client_name": "Promoteur_X",
         "site_location": "Lyon_69",
-        "export_date": "08/06/2026 00:30:08",
+        "export_date": "09/06/2026 09:30:47",
         "status": "Computed",
         "calculation_conditions": {
             "air_temperature_c": 20.0,
@@ -74,12 +74,19 @@
                 "height_mm": null,
                 "equivalent_diameter_mm": 450.0,
                 "material_roughness_mm": 0.15,
-                "base_zeta": 0.0,
-                "user_zeta": null,
                 "total_zeta_coefficient": 0.0,
                 "flow_rate_m3h": 2200.0,
                 "air_velocity_ms": 3.84,
-                "total_pressure_drop_pa": 0.75
+                "total_pressure_drop_pa": 0.75,
+                "for_resetField": {
+                    "initial_D_m": 0.45,
+                    "initial_L_m": 2.0,
+                    "initial_W_m": null,
+                    "initial_H_m": null,
+                    "initial_epsilon_mm": 0.15,
+                    "base_zeta": 0.0,
+                    "user_zeta": null
+                }
             },
             {
                 "segment_id": "to_junction_A",
@@ -91,12 +98,19 @@
                 "height_mm": null,
                 "equivalent_diameter_mm": 400.0,
                 "material_roughness_mm": 0.15,
-                "base_zeta": 0.0,
-                "user_zeta": null,
                 "total_zeta_coefficient": 0.02,
                 "flow_rate_m3h": 2200.0,
                 "air_velocity_ms": 4.86,
-                "total_pressure_drop_pa": 2.23
+                "total_pressure_drop_pa": 2.23,
+                "for_resetField": {
+                    "initial_D_m": 0.4,
+                    "initial_L_m": 3.0,
+                    "initial_W_m": null,
+                    "initial_H_m": null,
+                    "initial_epsilon_mm": 0.15,
+                    "base_zeta": 0.0,
+                    "user_zeta": null
+                }
             },
             {
                 "segment_id": "office_1",
@@ -108,12 +122,19 @@
                 "height_mm": 170.0,
                 "equivalent_diameter_mm": 184.0,
                 "material_roughness_mm": 0.02,
-                "base_zeta": 0.6,
-                "user_zeta": null,
                 "total_zeta_coefficient": 2.25,
                 "flow_rate_m3h": 550.0,
                 "air_velocity_ms": 4.49,
-                "total_pressure_drop_pa": 29.48
+                "total_pressure_drop_pa": 29.48,
+                "for_resetField": {
+                    "initial_D_m": 0.1838,
+                    "initial_L_m": 2.0,
+                    "initial_W_m": 0.2,
+                    "initial_H_m": 0.17,
+                    "initial_epsilon_mm": 0.02,
+                    "base_zeta": 0.6,
+                    "user_zeta": null
+                }
             },
             {
                 "segment_id": "office_2",
@@ -125,12 +146,19 @@
                 "height_mm": 160.0,
                 "equivalent_diameter_mm": 178.0,
                 "material_roughness_mm": 0.02,
-                "base_zeta": 0.6,
-                "user_zeta": null,
                 "total_zeta_coefficient": 2.35,
                 "flow_rate_m3h": 500.0,
                 "air_velocity_ms": 4.34,
-                "total_pressure_drop_pa": 28.75
+                "total_pressure_drop_pa": 28.75,
+                "for_resetField": {
+                    "initial_D_m": 0.1778,
+                    "initial_L_m": 2.0,
+                    "initial_W_m": 0.2,
+                    "initial_H_m": 0.16,
+                    "initial_epsilon_mm": 0.02,
+                    "base_zeta": 0.6,
+                    "user_zeta": null
+                }
             },
             {
                 "segment_id": "transit_to_B",
@@ -142,12 +170,19 @@
                 "height_mm": null,
                 "equivalent_diameter_mm": 300.0,
                 "material_roughness_mm": 0.15,
-                "base_zeta": 0.0,
-                "user_zeta": null,
                 "total_zeta_coefficient": 0.63,
                 "flow_rate_m3h": 1150.0,
                 "air_velocity_ms": 4.52,
-                "total_pressure_drop_pa": 10.09
+                "total_pressure_drop_pa": 10.09,
+                "for_resetField": {
+                    "initial_D_m": 0.3,
+                    "initial_L_m": 3.0,
+                    "initial_W_m": null,
+                    "initial_H_m": null,
+                    "initial_epsilon_mm": 0.15,
+                    "base_zeta": 0.0,
+                    "user_zeta": null
+                }
             },
             {
                 "segment_id": "office_3",
@@ -159,12 +194,19 @@
                 "height_mm": 180.0,
                 "equivalent_diameter_mm": 189.0,
                 "material_roughness_mm": 0.02,
-                "base_zeta": 0.6,
-                "user_zeta": null,
                 "total_zeta_coefficient": 1.6,
                 "flow_rate_m3h": 600.0,
                 "air_velocity_ms": 4.63,
-                "total_pressure_drop_pa": 22.97
+                "total_pressure_drop_pa": 22.97,
+                "for_resetField": {
+                    "initial_D_m": 0.1895,
+                    "initial_L_m": 2.0,
+                    "initial_W_m": 0.2,
+                    "initial_H_m": 0.18,
+                    "initial_epsilon_mm": 0.02,
+                    "base_zeta": 0.6,
+                    "user_zeta": null
+                }
             },
             {
                 "segment_id": "office_4",
@@ -176,12 +218,19 @@
                 "height_mm": 170.0,
                 "equivalent_diameter_mm": 184.0,
                 "material_roughness_mm": 0.02,
-                "base_zeta": 0.6,
-                "user_zeta": null,
                 "total_zeta_coefficient": 1.69,
                 "flow_rate_m3h": 550.0,
                 "air_velocity_ms": 4.49,
-                "total_pressure_drop_pa": 22.8
+                "total_pressure_drop_pa": 22.8,
+                "for_resetField": {
+                    "initial_D_m": 0.1838,
+                    "initial_L_m": 2.0,
+                    "initial_W_m": 0.2,
+                    "initial_H_m": 0.17,
+                    "initial_epsilon_mm": 0.02,
+                    "base_zeta": 0.6,
+                    "user_zeta": null
+                }
             }
         ]
     },
@@ -405,12 +454,12 @@
         }
     ],
     "solver_performance": {
-        "execution_time_sec": 0.188,
+        "execution_time_sec": 0.193,
         "convergence_status": "stable",
         "residual_error_m3s": 8.5e-10,
         "tolerance_targeted_m3s": 1e-09,
         "iterations_performed": 622,
         "max_iterations_allowed": 1000000,
-        "timestamp": "08/06/2026 00:29:19"
+        "timestamp": "09/06/2026 09:30:30"
     }
 }
