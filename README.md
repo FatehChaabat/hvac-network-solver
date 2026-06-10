@@ -37,9 +37,9 @@ L'API est déployée sur Render et accessible sans installation :
 | **Multi-ventilateurs** | Dimensionnement individuel par ventilateur, circuit critique par Dijkstra, table d'équilibrage par terminal |
 | **Analyse acoustique** | Diagnostic adaptatif par type de conduit + recommandations de redimensionnement (ASHRAE) |
 | **Analyse énergétique** | Puissance absorbée (méthodes B/C AMCA/Almeco) + OPEX annuel estimé |
-| **Rapports PDF** | Bilan aéraulique, audit hydraulique, analyse acoustique, schéma réseau — générés automatiquement |
-| **Intégration** | API REST scalable, export JSON structuré pour CAO, BIM, jumeaux numériques |
 | **Visualiseur interactif** | Exploration post-calcul via Vis-Network — 4 onglets (Détails/Ventilateurs/Équilibrage/Projet), mode édition par conduit avec recalcul instantané, réinitialisation indépendante par champ, reset conduit complet et reset global, soufflage et extraction, mono et multi-ventilateurs |
+| **Intégration** | API REST scalable, export JSON structuré pour CAO, BIM, jumeaux numériques |
+| **Rapports PDF** | Bilan aéraulique, audit hydraulique, analyse acoustique, schéma réseau — générés automatiquement |
 | **Prédimensionnement** | Module autonome pour le calcul des gaines circulaires et rectangulaires selon débit et vitesse cible *(Voir [l'Annexe Technique](#annexe-02--assistant-de-prédimensionnement))* |
 
 
@@ -124,10 +124,10 @@ L'API est structurée autour des endpoints suivants pour piloter le solveur, de 
 | `POST` | `/network/ducts` | Définition des conduits | JSON |
 | `POST` | `/network/fans` | Configuration des ventilateurs | JSON |
 | `POST` | `/network/calculate` | **Solveur** — calcul complet avec contrôle indépendant de paramètres de simulation | JSON |
+| `GET` | `/network/visualizer` | **Visualiseur interactif** — Exploration et modification post-calcul | HTML |
+| `GET` | `/network/data` | Export données | JSON |
 | `GET` | `/network/schema` | Schéma du réseau | PNG |
 | `GET` | `/network/report` | Rapport technique complet | PDF |
-| `GET` | `/network/data` | Export données | JSON |
-| `GET` | `/network/visualizer` | **Visualiseur interactif** — Exploration et modification post-calcul | HTML |
 | `GET` | `/catalog/zeta` | Catalogue des coefficients singuliers | JSON |
 | `POST` | `/tools/duct-sizer` | Prédimensionnement des conduits | JSON |
 
@@ -180,21 +180,7 @@ Nom du projet : Batiment_R+4 | Client : Promoteur_X | Site : Lyon_69
 ### Étape 4 — Calcul
 `POST /network/calculate` — Lancez le solveur. Ajustez température et altitude pour affiner les propriétés de l'air (ex. 20°C, 170 m pour Lyon).
 
-### Étape 5 — Exports
-
-**Schéma réseau** (`GET /network/schema`) :
-
-<p align="center">
-  <img src="docs/Batiment_R+4_Promoteur_X_20260609_093030.png" width="850" alt="Schéma technique du réseau aéraulique">
-</p>
-
-**Rapport PDF** (`GET /network/report`) — Audit hydraulique, pressions, acoustique, schéma :
-
-📎 [Exemple de rapport PDF](docs/Batiment_R+4_Promoteur_X_20260609_093030.pdf)
-
-**Données JSON** (`GET /network/data`) — Export structuré pour intégration CAO/BIM :
-
-📎 [Exemple de rapport JSON](docs/Batiment_R+4_Promoteur_X_20260609_093030.json)
+### Étape 5 — Visualiseur interactif & Exports
 
 **Visualiseur interactif (`GET /network/visualizer`) — Exploration et modification post-calcul :**
 
@@ -203,6 +189,22 @@ Nom du projet : Batiment_R+4 | Client : Promoteur_X | Site : Lyon_69
 </p>
 
 Interface web complète basée sur Vis-Network. Quatre onglets : **Détails**, **Ventilateurs**, **Équilibrage** (K-Factor par terminal), **Projet** (métadonnées + conditions de calcul). Cliquez sur un conduit pour inspecter ses propriétés ou basculer en **mode édition** — modifiez Ø, L, rugosité ou coefficients ζ et cliquez **▶ Calculer** pour un recalcul instantané. Boutons ↺ individuels pour réinitialiser chaque paramètre indépendamment, **↺ Reset conduit** pour restaurer l'ensemble du conduit, et **↺ Tout réinitialiser** pour restaurer tous les conduits à leurs valeurs initiales de simulation. Fonctionne en soufflage et extraction, mono et multi-ventilateurs.
+
+**Données JSON** (`GET /network/data`) — Export structuré pour intégration CAO/BIM :
+
+📎 [Exemple de rapport JSON](docs/Batiment_R+4_Promoteur_X_20260610_180036.json)
+
+
+**Schéma réseau** (`GET /network/schema`) :
+
+<p align="center">
+  <img src="docs/Batiment_R+4_Promoteur_X_20260610_180036.png" width="850" alt="Schéma technique du réseau aéraulique">
+</p>
+
+**Rapport PDF** (`GET /network/report`) — Audit hydraulique, pressions, acoustique, schéma :
+
+📎 [Exemple de rapport PDF](docs/Batiment_R+4_Promoteur_X_20260610_180036.pdf)
+
 
 ---
 
