@@ -237,9 +237,9 @@ hvac-network-solver/
 │
 ├── docs/
 |   ├── visualizer_demo.png                               # Capture d'écran visualiseur interactif
-│   ├── Batiment_R+4_Promoteur_X_20260526_194113.png      # Schéma réseau exemple
-│   ├── Batiment_R+4_Promoteur_X_20260526_194113.pdf      # Rapport PDF exemple
-│   └── Batiment_R+4_Promoteur_X_20260526_194113.json     # Rapport JSON exemple
+│   ├── Batiment_R+4_Promoteur_X_20260610_180036.json     # Rapport JSON exemple
+│   ├── Batiment_R+4_Promoteur_X_20260610_180036.png      # Schéma réseau exemple
+│   └── Batiment_R+4_Promoteur_X_20260610_180036.pdf      # Rapport PDF exemple
 │
 └── .gitignore                                            # Fichiers exclus du dépôt
 ```
