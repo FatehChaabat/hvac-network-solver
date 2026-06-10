@@ -3,7 +3,7 @@
         "project_name": "Batiment_R+4",
         "client_name": "Promoteur_X",
         "site_location": "Lyon_69",
-        "export_date": "09/06/2026 09:30:47",
+        "export_date": "10/06/2026 18:01:20",
         "status": "Computed",
         "calculation_conditions": {
             "air_temperature_c": 20.0,
@@ -35,13 +35,13 @@
             "of_01": {
                 "target_flow_m3h": -550.0,
                 "pressure_status": "Calculated Result",
-                "node_static_pressure_pa": -32.46,
+                "node_static_pressure_pa": -31.73,
                 "node_type": "Terminal/Diffuser"
             },
             "of_02": {
                 "target_flow_m3h": -500.0,
                 "pressure_status": "Calculated Result",
-                "node_static_pressure_pa": -31.72,
+                "node_static_pressure_pa": -31.03,
                 "node_type": "Terminal/Diffuser"
             },
             "jn_b": {
@@ -53,13 +53,13 @@
             "of_03": {
                 "target_flow_m3h": -600.0,
                 "pressure_status": "Calculated Result",
-                "node_static_pressure_pa": -36.03,
+                "node_static_pressure_pa": -35.54,
                 "node_type": "Terminal/Diffuser"
             },
             "of_04": {
                 "target_flow_m3h": -550.0,
                 "pressure_status": "Calculated Result",
-                "node_static_pressure_pa": -35.87,
+                "node_static_pressure_pa": -35.37,
                 "node_type": "Terminal/Diffuser"
             }
         },
@@ -122,10 +122,10 @@
                 "height_mm": 170.0,
                 "equivalent_diameter_mm": 184.0,
                 "material_roughness_mm": 0.02,
-                "total_zeta_coefficient": 2.25,
+                "total_zeta_coefficient": 2.19,
                 "flow_rate_m3h": 550.0,
                 "air_velocity_ms": 4.49,
-                "total_pressure_drop_pa": 29.48,
+                "total_pressure_drop_pa": 28.76,
                 "for_resetField": {
                     "initial_D_m": 0.1838,
                     "initial_L_m": 2.0,
@@ -146,10 +146,10 @@
                 "height_mm": 160.0,
                 "equivalent_diameter_mm": 178.0,
                 "material_roughness_mm": 0.02,
-                "total_zeta_coefficient": 2.35,
+                "total_zeta_coefficient": 2.28,
                 "flow_rate_m3h": 500.0,
                 "air_velocity_ms": 4.34,
-                "total_pressure_drop_pa": 28.75,
+                "total_pressure_drop_pa": 28.06,
                 "for_resetField": {
                     "initial_D_m": 0.1778,
                     "initial_L_m": 2.0,
@@ -194,10 +194,10 @@
                 "height_mm": 180.0,
                 "equivalent_diameter_mm": 189.0,
                 "material_roughness_mm": 0.02,
-                "total_zeta_coefficient": 1.6,
+                "total_zeta_coefficient": 1.56,
                 "flow_rate_m3h": 600.0,
                 "air_velocity_ms": 4.63,
-                "total_pressure_drop_pa": 22.97,
+                "total_pressure_drop_pa": 22.47,
                 "for_resetField": {
                     "initial_D_m": 0.1895,
                     "initial_L_m": 2.0,
@@ -218,10 +218,10 @@
                 "height_mm": 170.0,
                 "equivalent_diameter_mm": 184.0,
                 "material_roughness_mm": 0.02,
-                "total_zeta_coefficient": 1.69,
+                "total_zeta_coefficient": 1.64,
                 "flow_rate_m3h": 550.0,
                 "air_velocity_ms": 4.49,
-                "total_pressure_drop_pa": 22.8,
+                "total_pressure_drop_pa": 22.3,
                 "for_resetField": {
                     "initial_D_m": 0.1838,
                     "initial_L_m": 2.0,
@@ -244,19 +244,19 @@
                 "nominal_target_efficiency": 0.75,
                 "fan_flow_m3h": 2200.0,
                 "critical_node": "of_03",
-                "total_pressure_pa": 36.03,
-                "shaft_input_power_w": 29.36
+                "total_pressure_pa": 35.54,
+                "shaft_input_power_w": 28.96
             }
         },
         "operating_cost_projections": {
-            "total_shaft_input_power_w": 29.36,
+            "total_shaft_input_power_w": 28.96,
             "service_profile_assumptions": {
                 "daily_operating_cycle_h": 10.0,
                 "annual_operating_cycle_days": 250
             },
-            "annual_energy_usage_kwh": 73.4,
+            "annual_energy_usage_kwh": 72.4,
             "unit_energy_cost_euro_kwh": 0.25,
-            "estimated_annual_opex_euro": 18.35
+            "estimated_annual_opex_euro": 18.1
         }
     },
     "terminal_balancing_analysis": [
@@ -264,25 +264,25 @@
             "fan_id": "fan_01",
             "fan_label": "Main_Fan",
             "terminal_node": "of_01",
-            "total_pressure_pa": 32.46,
-            "required_balancing_pressure_pa": 3.57,
+            "total_pressure_pa": 31.73,
+            "required_balancing_pressure_pa": 3.81,
             "exit_dyn_pressure_pa": 19.57,
-            "required_balancing_zeta": 0.183
+            "required_balancing_zeta": 0.194
         },
         {
             "fan_id": "fan_01",
             "fan_label": "Main_Fan",
             "terminal_node": "of_02",
-            "total_pressure_pa": 31.72,
-            "required_balancing_pressure_pa": 4.31,
+            "total_pressure_pa": 31.03,
+            "required_balancing_pressure_pa": 4.51,
             "exit_dyn_pressure_pa": 18.47,
-            "required_balancing_zeta": 0.233
+            "required_balancing_zeta": 0.244
         },
         {
             "fan_id": "fan_01",
             "fan_label": "Main_Fan",
             "terminal_node": "of_03",
-            "total_pressure_pa": 36.03,
+            "total_pressure_pa": 35.54,
             "required_balancing_pressure_pa": 0.0,
             "exit_dyn_pressure_pa": 20.62,
             "required_balancing_zeta": 0.0
@@ -291,10 +291,10 @@
             "fan_id": "fan_01",
             "fan_label": "Main_Fan",
             "terminal_node": "of_04",
-            "total_pressure_pa": 35.87,
-            "required_balancing_pressure_pa": 0.16,
+            "total_pressure_pa": 35.37,
+            "required_balancing_pressure_pa": 0.17,
             "exit_dyn_pressure_pa": 19.57,
-            "required_balancing_zeta": 0.008
+            "required_balancing_zeta": 0.009
         }
     ],
     "duct_details": [
@@ -360,8 +360,8 @@
                 "reynolds": 53741,
                 "regime": "Turbulent",
                 "friction_lambda": 0.021,
-                "singular_pressure_loss_pa": 26.76,
-                "total_zeta": 2.246
+                "singular_pressure_loss_pa": 26.04,
+                "total_zeta": 2.186
             }
         },
         {
@@ -382,8 +382,8 @@
                 "reynolds": 50213,
                 "regime": "Turbulent",
                 "friction_lambda": 0.0213,
-                "singular_pressure_loss_pa": 26.09,
-                "total_zeta": 2.347
+                "singular_pressure_loss_pa": 25.4,
+                "total_zeta": 2.285
             }
         },
         {
@@ -426,8 +426,8 @@
                 "reynolds": 57084,
                 "regime": "Turbulent",
                 "friction_lambda": 0.0207,
-                "singular_pressure_loss_pa": 20.2,
-                "total_zeta": 1.598
+                "singular_pressure_loss_pa": 19.71,
+                "total_zeta": 1.559
             }
         },
         {
@@ -448,18 +448,18 @@
                 "reynolds": 53741,
                 "regime": "Turbulent",
                 "friction_lambda": 0.021,
-                "singular_pressure_loss_pa": 20.08,
-                "total_zeta": 1.686
+                "singular_pressure_loss_pa": 19.59,
+                "total_zeta": 1.644
             }
         }
     ],
     "solver_performance": {
-        "execution_time_sec": 0.193,
+        "execution_time_sec": 0.17,
         "convergence_status": "stable",
-        "residual_error_m3s": 8.5e-10,
+        "residual_error_m3s": 8.7e-10,
         "tolerance_targeted_m3s": 1e-09,
-        "iterations_performed": 622,
+        "iterations_performed": 624,
         "max_iterations_allowed": 1000000,
-        "timestamp": "09/06/2026 09:30:30"
+        "timestamp": "10/06/2026 18:00:36"
     }
 }
